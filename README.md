@@ -25,19 +25,19 @@ search_domains:
     - home.arpa
     - local
 ---
-{% macro principal(name) -%}
-    {{ name }}
-    {{ user.name }}@{{ name }}
+{% macro principals(fqdn) -%}
+    {{ fqdn }}
+    {{ user.name }}@{{ fqdn }}
     {%- for group in user.groups  %}
         {%- if group.gid >= 1000 %}
-           @{{- group.name }}@{{ name }}
+           @{{- group.name }}@{{ fqdn }}
         {%- endif %}
     {%- endfor -%}
 {%- endmacro input -%}
 
-{{- self::principal(name=hostname) }}
+{{- self::principals(fqdn=hostname) }}
 {% for search_domain in search_domains  %}
-    {{- self::principal(name=hostname ~ "." ~ search_domain) }}
+    {{- self::principals(fqdn=hostname ~ "." ~ search_domain) }}
 {%  endfor -%}
 ```
 
