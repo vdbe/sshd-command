@@ -8,7 +8,9 @@ use thiserror::Error;
 use semver::{Version, VersionReq};
 use serde::Deserialize;
 
-use crate::{tokens::Token, Command, CommandTrait, PrincipalCommand, SshdCommandError};
+use crate::{
+    tokens::Token, Command, CommandTrait, KeysCommand, PrincipalCommand, SshdCommandError,
+};
 
 #[derive(Error, Debug)]
 pub enum FrontMatterError {
@@ -71,7 +73,7 @@ impl FrontMatter {
         let command = self.sshd_command.command;
         let tokens = &self.sshd_command.tokens.0;
         let token_validation = match command {
-            Command::Keys => todo!(),
+            Command::Keys => KeysCommand::validate_tokens(tokens),
             Command::Principals => PrincipalCommand::validate_tokens(tokens),
         };
 

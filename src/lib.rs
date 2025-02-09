@@ -57,6 +57,7 @@ trait CommandTrait {
 }
 
 enum PrincipalCommand {}
+enum KeysCommand {}
 
 impl CommandTrait for PrincipalCommand {
     fn is_token_supported(token: Token) -> bool {
@@ -74,6 +75,24 @@ impl CommandTrait for PrincipalCommand {
                 | Tk::Base64EncodedAuthKeyOrCert
                 | Tk::CertificateSerialNumber
                 | Tk::CaKeyType
+                | Tk::CertKeyType
+                | Tk::UserId
+                | Tk::UserName
+        )
+    }
+}
+
+impl CommandTrait for KeysCommand {
+    fn is_token_supported(token: Token) -> bool {
+        use Token as Tk;
+
+        matches!(
+            token,
+            Tk::ConnectionEndpoints
+                | Tk::RoutingDomain
+                | Tk::FingerPrintCaKeyOrCert
+                | Tk::HomeDirUser
+                | Tk::Base64EncodedAuthKeyOrCert
                 | Tk::CertKeyType
                 | Tk::UserId
                 | Tk::UserName
