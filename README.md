@@ -1,6 +1,6 @@
 # sshd-command
 
-Sshd-command is tool to be used a AuthorizedKeysCommand/AuthorizedPrincipalsCommand (see SSHD_CONFIG(5))
+Sshd-command is tool to be used a `AuthorizedKeysCommand`/`AuthorizedPrincipalsCommand` (see SSHD_CONFIG(5))
 in combination with a [tera template](https://keats.github.io/tera/).
 
 
@@ -25,7 +25,6 @@ search_domains:
     - home.arpa
     - local
 ---
-
 {% macro principal(name) -%}
     {{ name }}
     {{ user.name }}@{{ name }}
@@ -41,8 +40,10 @@ search_domains:
     {{- self::principal(name=hostname ~ "." ~ search_domain) }}
 {%  endfor -%}
 ```
+
 <details open>
 <summary>Output: user@server01: @admin</summary>
+    
 ```
 server01
     user@server01
@@ -53,10 +54,9 @@ server01.home.arpa
 server01.local
     user@server01.local
            @admin@server01.local
-  
 ```
 </details>
 
 ## Thanks to
 - [catppuccin/whiskers](https://github.com/catppuccin/whiskers) for the inspiration
-- [getcho/nixpkgs-tracker-bot](https://github.com/getchoo/nixpkgs-tracker-bot) for the nix parts
+- [getchoo/nixpkgs-tracker-bot](https://github.com/getchoo/nixpkgs-tracker-bot) for the nix parts
