@@ -1,0 +1,26 @@
+[package]
+name = "sshd-command"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "sshd-command"
+path = "src/main.rs"
+
+[dependencies]
+hostname = "0.4.0"
+semver = { version = "1.0.25", features = ["serde"] }
+serde = { version = "1.0.217", features = ["derive"] }
+serde_yaml = "0.9.34"
+tera = { version = "1.20.0", default-features = false }
+thiserror = "2.0.11"
+uzers = { version = "0.12.1", default-features = false }
+
+[lints.clippy]
+# cargo = "warn"
+pedantic = { level = "warn", priority = -1 }
+nursery = { level = "warn", priority = -1 }
+suspicious = { level = "deny", priority = -1 }
+
+[lints.rust]
+unsafe_code = "forbid"

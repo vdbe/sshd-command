@@ -1,0 +1,123 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "**.lock"
+      - "**.rs"
+      - "**.nix"
+      - "Cargo.toml"
+      - ".github/workflows/ci.yaml"
+  pull_request:
+    paths:
+      - "**.lock"
+      - "**.rs"
+      - "**.nix"
+      - "Cargo.toml"
+      - ".github/workflows/ci.yaml"
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          # - macos-latest
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v16
+
+      - name: Run build
+        run: |
+          nix build --print-build-logs .#
+
+  format-and-lint:
+    name: Format and lint
+
+    runs-on: ubuntu-latest
+    outputs:
+      sarif_uploaded: ${{ steps.set-artifact-output.outputs.sarif_uploaded }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v16
+
+      - name: Run flake checks
+        run: |
+          nix flake check --print-build-logs --show-trace
+
+      - name: Run flake checks
+        run: |
+          nix flake check --print-build-logs --show-trace
+
+      - name: Save clippy output
+        id: save-clippy
+        run: |
+          nix build --print-build-logs .#checks.x86_64-linux.clippy
+          [ -L result ] || exit 1
+
+      - name: Upload SARIF artifact
+        if: steps.save-clippy.outcome == 'success'
+        id: clippy-artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sarif-results
+          path: result
+          retention-days: 1
+
+      - name: Set SARIF artifact output
+        id: set-artifact-output
+        if: steps.clippy-artifact.outcome == 'success'
+        run: |
+         echo "sarif_uploaded=true" >> "$GITHUB_OUTPUT"
+
+  upload-sarif:
+    name: Upload SARIF results
+
+    runs-on: ubuntu-latest
+    needs: format-and-lint
+    if: needs.format-and-lint.outputs.sarif_uploaded == 'true'
+
+    permissions:
+      security-events: write
+      # actions: read
+      # contents: read
+
+    steps:
+      - name: Download SARIF artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: sarif-results
+          path: .
+
+      - name: Upload SARIF file
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: result
+
+  release-gate:
+    name: CI Release gate
+    needs: [build, format-and-lint]
+
+    if: ${{ always() }}
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Exit with error
+        if: ${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') }}
+        run: exit 1
