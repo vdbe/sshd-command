@@ -60,14 +60,10 @@ jobs:
         run: |
           nix flake check --print-build-logs --show-trace
 
-      - name: Run flake checks
-        run: |
-          nix flake check --print-build-logs --show-trace
-
       - name: Save clippy output
         id: save-clippy
         run: |
-          nix build --print-build-logs .#checks.x86_64-linux.clippy
+          nix build  .#checks.x86_64-linux.clippy
           [ -L result ] || exit 1
 
       - name: Upload SARIF artifact

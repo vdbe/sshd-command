@@ -45,11 +45,6 @@ rustPlatform.buildRustPackage rec {
     (lib.optionalString optimizeWithUpx ''
       upx --best --lzma "$out/bin/sshd-command"
     '')
-
-    ''
-      # asdfqwe
-        
-    ''
   ];
 
   env =
