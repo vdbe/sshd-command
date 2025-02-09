@@ -219,8 +219,14 @@ pub fn main<I: Iterator<Item = String>, W: Write>(
             Token::RoutingDomain => todo!(),
             Token::FingerPrintCaKey => todo!(),
             Token::FingerPrintCaKeyOrCert => todo!(),
-            Token::HomeDirUser => todo!(),
-            Token::KeyIdCert => todo!(),
+            Token::HomeDirUser => context.insert(
+                "home_dir",
+                args.next().ok_or("No home dir provided")?.as_str(),
+            ),
+            Token::KeyIdCert => context.insert(
+                "key_id",
+                &usize::from_str(args.next().ok_or("No key id args provided")?.as_str())?,
+            ),
             Token::Base64EncodedCaKey => todo!(),
             Token::Base64EncodedAuthKeyOrCert => todo!(),
             Token::CertificateSerialNumber => todo!(),
