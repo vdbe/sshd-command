@@ -56,14 +56,11 @@ jobs:
       - name: Install Nix
         uses: DeterminateSystems/nix-installer-action@v16
 
-      - name: Run flake checks
-        run: |
-          nix flake check --print-build-logs --show-trace
-
-      - name: Save clippy output
+      - name: Run clippy check
         id: save-clippy
+        continue-on-error: true
         run: |
-          nix build  .#checks.x86_64-linux.clippy
+          nix build --print-build-logs .#checks.x86_64-linux.clippy
           [ -L result ] || exit 1
 
       - name: Upload SARIF artifact
@@ -75,11 +72,15 @@ jobs:
           path: result
           retention-days: 1
 
-      - name: Set SARIF artifact output
+      - name: Confirm SARIF artifact upload
         id: set-artifact-output
         if: steps.clippy-artifact.outcome == 'success'
         run: |
          echo "sarif_uploaded=true" >> "$GITHUB_OUTPUT"
+
+      - name: Run flake checks
+        run: |
+          nix flake check --print-build-logs --show-trace
 
   upload-sarif:
     name: Upload SARIF results
