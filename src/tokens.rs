@@ -46,7 +46,7 @@ pub enum Token {
 }
 
 impl<'a> TryFrom<&'a str> for Token {
-    type Error = ();
+    type Error = &'a str;
 
     fn try_from(value: &'a str) -> Result<Self, Self::Error> {
         let token = match value {
@@ -63,7 +63,7 @@ impl<'a> TryFrom<&'a str> for Token {
             "%t" => Self::CertKeyType,
             "%U" => Self::UserId,
             "%u" => Self::UserName,
-            _ => return Err(()),
+            _ => return Err(value),
         };
 
         Ok(token)

@@ -1,7 +1,4 @@
-use std::{
-    fs::File,
-    io::{BufRead, BufReader},
-};
+use std::io::{BufRead, BufReader, Read};
 
 use thiserror::Error;
 
@@ -82,7 +79,7 @@ impl FrontMatter {
         Ok(())
     }
 
-    pub(crate) fn parse(reader: &mut BufReader<File>) -> Result<Self, FrontMatterError> {
+    pub(crate) fn parse<R: Read>(reader: &mut BufReader<R>) -> Result<Self, FrontMatterError> {
         let mut buf = String::new();
         let mut buf_len;
         reader
@@ -149,9 +146,10 @@ mod _serde {
                 v.split_whitespace().map(Token::try_from).collect();
 
             tokens.map_or_else(
-                |()| {
+                |invalid_token| {
                     Err(serde::de::Error::invalid_type(
-                        serde::de::Unexpected::Str(v),
+                        // TODO: Add better unexpected msg
+                        serde::de::Unexpected::Str(invalid_token),
                         &self,
                     ))
                 },

@@ -1,19 +1,19 @@
 use std::{
-    error::Error,
     fmt::Display,
-    fs::File,
     io::{BufReader, Read, Write},
     net::{IpAddr, SocketAddr},
     str::FromStr,
 };
 
-use frontmatter::{FrontMatter, FrontMatterError};
+use error::SshdCommandError;
+use frontmatter::FrontMatter;
 use serde::{Deserialize, Serialize};
 
 use tera::{Context, Tera};
 use tokens::Token;
 use uzers::{get_user_by_name, get_user_by_uid};
 
+mod error;
 mod frontmatter;
 mod tokens;
 
@@ -100,22 +100,6 @@ impl CommandTrait for KeysCommand {
     }
 }
 
-#[derive(Debug)]
-pub enum SshdCommandError {
-    FrontMatter(FrontMatterError),
-}
-impl std::error::Error for SshdCommandError {}
-
-impl Display for SshdCommandError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match &self {
-            Self::FrontMatter(err) => {
-                write!(f, "{err}")
-            }
-        }
-    }
-}
-
 #[derive(Debug, Default, Serialize)]
 struct User {
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -132,10 +116,14 @@ struct User {
 }
 
 impl User {
-    fn complete(&mut self) -> Result<(), ()> {
+    fn complete(&mut self) -> Result<(), SshdCommandError> {
         let user = match (self.uid, &self.name) {
             (Some(uid), _) => {
-                let user = get_user_by_uid(uid).expect("provided user id doesn't exist");
+                let user = get_user_by_uid(uid).ok_or(SshdCommandError::InvalidTokenArgument(
+                    Token::UserId,
+                    format!("{uid}"),
+                ))?;
+
                 if self.name.is_none() {
                     self.name = Some(
                         user.name()
@@ -151,7 +139,7 @@ impl User {
                 self.uid = Some(user.uid());
                 user
             }
-            _ => return Err(()),
+            _ => return Err(SshdCommandError::from("Failed to complete user")),
         };
 
         self.gid = Some(user.primary_group_id());
@@ -182,34 +170,62 @@ struct Group {
     name: String,
 }
 
-pub fn main<I: Iterator<Item = String>, W: Write>(
-    mut args: I,
-    writer: W,
-) -> Result<(), Box<dyn Error>> {
-    let template_path = args.next().ok_or("No template path provided")?;
+// NOTE: Should probably be a macro
+#[inline]
+fn next_arg<I: Iterator<Item = String>>(
+    args: &mut I,
+    token: Token,
+) -> Result<String, SshdCommandError> {
+    args.next()
+        .ok_or(SshdCommandError::MissingTokenArgument(token))
+}
 
-    let f = File::open(&template_path)?;
-    let mut reader = BufReader::new(f);
+/// # Errors
+///
+/// Will return `Err` on an invalid template.
+///
+/// # Panics
+///
+/// Will panic on `OsStr::to_str()` errors.
+pub fn main<I: Iterator<Item = String>, W: Write, R: Read>(
+    mut args: I,
+    template_name: &str,
+    template: R,
+    writer: W,
+) -> Result<(), SshdCommandError> {
+    let mut reader = BufReader::new(template);
     let front_matter = FrontMatter::parse(&mut reader)?;
 
-    let mut context = Context::from_value(front_matter.extra_context)?;
+    let mut context =
+        Context::from_value(front_matter.extra_context).map_err(|_| SshdCommandError::Tera)?;
 
     let mut user = User::default();
 
     for token in front_matter.sshd_command.tokens() {
         match token {
             Token::ConnectionEndpoints => {
-                let client_addr =
-                    IpAddr::from_str(args.next().ok_or("No client addr arg")?.as_str())?;
+                // TODO: report what argument is missing not just the token
+                let arg = next_arg(&mut args, Token::ConnectionEndpoints)?;
+                let client_addr = IpAddr::from_str(&arg).map_err(|_| {
+                    SshdCommandError::InvalidTokenArgument(Token::ConnectionEndpoints, arg.clone())
+                })?;
 
-                let client_port = u16::from_str(args.next().ok_or("No client port arg")?.as_str())?;
+                let arg = next_arg(&mut args, Token::ConnectionEndpoints)?;
+                let client_port = u16::from_str(&arg).map_err(|_| {
+                    SshdCommandError::InvalidTokenArgument(Token::ConnectionEndpoints, arg.clone())
+                })?;
 
                 let client = SocketAddr::new(client_addr, client_port);
 
-                let server_addr =
-                    IpAddr::from_str(args.next().ok_or("No server addr arg")?.as_str())?;
+                let arg = next_arg(&mut args, Token::ConnectionEndpoints)?;
+                let server_addr = IpAddr::from_str(&arg).map_err(|_| {
+                    SshdCommandError::InvalidTokenArgument(Token::ConnectionEndpoints, arg.clone())
+                })?;
 
-                let server_port = u16::from_str(args.next().ok_or("No server port arg")?.as_str())?;
+                let arg = next_arg(&mut args, Token::ConnectionEndpoints)?;
+                let server_port = u16::from_str(&arg).map_err(|_| {
+                    SshdCommandError::InvalidTokenArgument(Token::ConnectionEndpoints, arg.clone())
+                })?;
 
                 let server = SocketAddr::new(server_addr, server_port);
 
@@ -219,39 +235,48 @@ pub fn main<I: Iterator<Item = String>, W: Write>(
             Token::RoutingDomain => todo!(),
             Token::FingerPrintCaKey => todo!(),
             Token::FingerPrintCaKeyOrCert => todo!(),
-            Token::HomeDirUser => context.insert(
-                "home_dir",
-                args.next().ok_or("No home dir provided")?.as_str(),
-            ),
-            Token::KeyIdCert => context.insert(
-                "key_id",
-                &usize::from_str(args.next().ok_or("No key id args provided")?.as_str())?,
-            ),
+            Token::HomeDirUser => {
+                let home_dir = next_arg(&mut args, Token::UserName)?;
+                context.insert("home_dir", &home_dir);
+            }
+            Token::KeyIdCert => {
+                let arg = next_arg(&mut args, Token::KeyIdCert)?;
+                let key_id = u32::from_str(&arg).map_err(|_| {
+                    SshdCommandError::InvalidTokenArgument(Token::KeyIdCert, arg.clone())
+                })?;
+                context.insert("key_id", &key_id);
+            }
             Token::Base64EncodedCaKey => todo!(),
             Token::Base64EncodedAuthKeyOrCert => todo!(),
             Token::CertificateSerialNumber => todo!(),
             Token::CaKeyType => todo!(),
             Token::CertKeyType => todo!(),
             Token::UserId => {
-                let uid = u32::from_str(args.next().ok_or("No user id arg")?.as_str())?;
+                let arg = next_arg(&mut args, Token::UserId)?;
+                let uid = u32::from_str(&arg).map_err(|_| {
+                    SshdCommandError::InvalidTokenArgument(Token::UserId, arg.clone())
+                })?;
                 user.uid = Some(uid);
             }
             Token::UserName => {
-                let uname = args.next().ok_or("No user name arg")?;
+                let uname = args
+                    .next()
+                    .ok_or(SshdCommandError::MissingTokenArgument(Token::UserName))?;
                 user.name = Some(uname);
             }
         }
     }
 
     if front_matter.sshd_command.complete_user {
-        user.complete().map_err(|()| "Failed to complete user")?;
+        user.complete()?;
     }
     context.insert("user", &user);
 
     if front_matter.sshd_command.hostname {
         context.insert(
             "hostname",
-            hostname::get()?
+            hostname::get()
+                .map_err(|_| "Failed to get hostname")?
                 .to_str()
                 .expect("Failed to convert hostname"),
         );
@@ -260,10 +285,14 @@ pub fn main<I: Iterator<Item = String>, W: Write>(
     let mut tera = Tera::default();
 
     let mut buf = String::new();
-    reader.read_to_string(&mut buf)?;
+    reader
+        .read_to_string(&mut buf)
+        .map_err(|e| SshdCommandError::Unknown(Box::new(e)))?;
 
-    tera.add_raw_template(&template_path, &buf)?;
-    tera.render_to(&template_path, &context, writer)?;
+    tera.add_raw_template(template_name, &buf)
+        .map_err(|_| SshdCommandError::Tera)?;
+    tera.render_to(template_name, &context, writer)
+        .map_err(|_| SshdCommandError::Tera)?;
 
     Ok(())
 }
