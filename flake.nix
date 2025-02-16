@@ -105,6 +105,7 @@
               pkgs.sarif-fmt
               pkgs.rust-analyzer
               pkgs.rustfmt
+              pkgs.cargo-expand
 
               # Nix tools
               self.formatter.${system}

@@ -5,16 +5,18 @@ use std::{
     str::FromStr,
 };
 
+use serde::{Deserialize, Serialize};
+use tera::{Context, Tera};
+use uzers::{get_user_by_name, get_user_by_uid};
+
 use error::SshdCommandError;
 use frontmatter::FrontMatter;
-use serde::{Deserialize, Serialize};
-
-use tera::{Context, Tera};
+use macros::next_arg;
 use tokens::Token;
-use uzers::{get_user_by_name, get_user_by_uid};
 
 mod error;
 mod frontmatter;
+mod macros;
 mod tokens;
 
 #[derive(Deserialize, PartialEq, Eq, Clone, Copy, Debug)]
@@ -48,7 +50,9 @@ trait CommandTrait {
     where
         Self: Sized,
     {
-        if let Some(&unsupported_token) = tokens.iter().find(|&t| !Self::is_token_supported(*t)) {
+        if let Some(&unsupported_token) =
+            tokens.iter().find(|&t| !Self::is_token_supported(*t))
+        {
             Err(unsupported_token)
         } else {
             Ok(())
@@ -119,10 +123,12 @@ impl User {
     fn complete(&mut self) -> Result<(), SshdCommandError> {
         let user = match (self.uid, &self.name) {
             (Some(uid), _) => {
-                let user = get_user_by_uid(uid).ok_or(SshdCommandError::InvalidTokenArgument(
-                    Token::UserId,
-                    format!("{uid}"),
-                ))?;
+                let user = get_user_by_uid(uid).ok_or(
+                    SshdCommandError::InvalidTokenArgument(
+                        Token::UserId,
+                        format!("{uid}"),
+                    ),
+                )?;
 
                 if self.name.is_none() {
                     self.name = Some(
@@ -135,7 +141,8 @@ impl User {
                 user
             }
             (_, Some(name)) => {
-                let user = get_user_by_name(&name).expect("provided user name doesn't exist");
+                let user = get_user_by_name(&name)
+                    .expect("provided user name doesn't exist");
                 self.uid = Some(user.uid());
                 user
             }
@@ -170,16 +177,6 @@ struct Group {
     name: String,
 }
 
-// NOTE: Should probably be a macro
-#[inline]
-fn next_arg<I: Iterator<Item = String>>(
-    args: &mut I,
-    token: Token,
-) -> Result<String, SshdCommandError> {
-    args.next()
-        .ok_or(SshdCommandError::MissingTokenArgument(token))
-}
-
 /// # Errors
 ///
 /// Will return `Err` on an invalid template.
@@ -188,16 +185,16 @@ fn next_arg<I: Iterator<Item = String>>(
 ///
 /// Will panic on `OsStr::to_str()` errors.
 pub fn main<I: Iterator<Item = String>, W: Write, R: Read>(
+    writer: &mut W,
     mut args: I,
     template_name: &str,
     template: R,
-    writer: W,
 ) -> Result<(), SshdCommandError> {
     let mut reader = BufReader::new(template);
     let front_matter = FrontMatter::parse(&mut reader)?;
 
-    let mut context =
-        Context::from_value(front_matter.extra_context).map_err(|_| SshdCommandError::Tera)?;
+    let mut context = Context::from_value(front_matter.extra_context)
+        .map_err(|_| SshdCommandError::Tera)?;
 
     let mut user = User::default();
 
@@ -205,27 +202,17 @@ pub fn main<I: Iterator<Item = String>, W: Write, R: Read>(
         match token {
             Token::ConnectionEndpoints => {
                 // TODO: report what argument is missing not just the token
-                let arg = next_arg(&mut args, Token::ConnectionEndpoints)?;
-                let client_addr = IpAddr::from_str(&arg).map_err(|_| {
-                    SshdCommandError::InvalidTokenArgument(Token::ConnectionEndpoints, arg.clone())
-                })?;
-
-                let arg = next_arg(&mut args, Token::ConnectionEndpoints)?;
-                let client_port = u16::from_str(&arg).map_err(|_| {
-                    SshdCommandError::InvalidTokenArgument(Token::ConnectionEndpoints, arg.clone())
-                })?;
+                let client_addr: IpAddr =
+                    next_arg!(args, _, Token::ConnectionEndpoints);
+                let client_port =
+                    next_arg!(args, u16, Token::ConnectionEndpoints);
 
                 let client = SocketAddr::new(client_addr, client_port);
 
-                let arg = next_arg(&mut args, Token::ConnectionEndpoints)?;
-                let server_addr = IpAddr::from_str(&arg).map_err(|_| {
-                    SshdCommandError::InvalidTokenArgument(Token::ConnectionEndpoints, arg.clone())
-                })?;
-
-                let arg = next_arg(&mut args, Token::ConnectionEndpoints)?;
-                let server_port = u16::from_str(&arg).map_err(|_| {
-                    SshdCommandError::InvalidTokenArgument(Token::ConnectionEndpoints, arg.clone())
-                })?;
+                let server_addr: IpAddr =
+                    next_arg!(args, _, Token::ConnectionEndpoints);
+                let server_port: u16 =
+                    next_arg!(args, _, Token::ConnectionEndpoints);
 
                 let server = SocketAddr::new(server_addr, server_port);
 
@@ -236,14 +223,11 @@ pub fn main<I: Iterator<Item = String>, W: Write, R: Read>(
             Token::FingerPrintCaKey => todo!(),
             Token::FingerPrintCaKeyOrCert => todo!(),
             Token::HomeDirUser => {
-                let home_dir = next_arg(&mut args, Token::UserName)?;
+                let home_dir = next_arg!(args, Token::UserName);
                 context.insert("home_dir", &home_dir);
             }
             Token::KeyIdCert => {
-                let arg = next_arg(&mut args, Token::KeyIdCert)?;
-                let key_id = u32::from_str(&arg).map_err(|_| {
-                    SshdCommandError::InvalidTokenArgument(Token::KeyIdCert, arg.clone())
-                })?;
+                let key_id: u32 = next_arg!(args, _, Token::KeyIdCert);
                 context.insert("key_id", &key_id);
             }
             Token::Base64EncodedCaKey => todo!(),
@@ -252,21 +236,17 @@ pub fn main<I: Iterator<Item = String>, W: Write, R: Read>(
             Token::CaKeyType => todo!(),
             Token::CertKeyType => todo!(),
             Token::UserId => {
-                let arg = next_arg(&mut args, Token::UserId)?;
-                let uid = u32::from_str(&arg).map_err(|_| {
-                    SshdCommandError::InvalidTokenArgument(Token::UserId, arg.clone())
-                })?;
+                let uid: u32 = next_arg!(args, _, Token::UserId);
                 user.uid = Some(uid);
             }
             Token::UserName => {
-                let uname = args
-                    .next()
-                    .ok_or(SshdCommandError::MissingTokenArgument(Token::UserName))?;
+                let uname = next_arg!(args, Token::UserName);
                 user.name = Some(uname);
             }
         }
     }
 
+    // Add additional context
     if front_matter.sshd_command.complete_user {
         user.complete()?;
     }
@@ -282,15 +262,18 @@ pub fn main<I: Iterator<Item = String>, W: Write, R: Read>(
         );
     }
 
-    let mut tera = Tera::default();
-
+    // Read tera template
     let mut buf = String::new();
     reader
         .read_to_string(&mut buf)
         .map_err(|e| SshdCommandError::Unknown(Box::new(e)))?;
 
+    // Load tera template
+    let mut tera = Tera::default();
     tera.add_raw_template(template_name, &buf)
         .map_err(|_| SshdCommandError::Tera)?;
+
+    // Render tera template
     tera.render_to(template_name, &context, writer)
         .map_err(|_| SshdCommandError::Tera)?;
 

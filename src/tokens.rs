@@ -1,93 +1,42 @@
-use serde::Deserialize;
-use std::fmt::Display;
+use crate::macros::define_tokens;
 
-#[non_exhaustive]
-#[derive(Deserialize, PartialEq, Eq, Clone, Copy, Debug)]
-pub enum Token {
-    /// %C: Identifies the connection endpoints, containing four space-separated
-    /// values:  client  address, client port number, server address, and server port number.
-    ConnectionEndpoints,
+define_tokens! {
+    /// %C: Identifies the connection endpoints, containing four space-separated values.
+    ConnectionEndpoints => "%C";
 
     /// %D: The routing domain in which the incoming connection was received.
-    RoutingDomain,
+    RoutingDomain => "%D";
 
     /// %F: The fingerprint of the CA key.
-    FingerPrintCaKey,
+    FingerPrintCaKey => "%F";
 
     /// %f: The fingerprint of the key or certificate.
-    FingerPrintCaKeyOrCert,
+    FingerPrintCaKeyOrCert => "%f";
 
     /// %h: The home directory of the user.
-    HomeDirUser,
+    HomeDirUser => "%h";
 
     /// %i: The key ID in the certificate.
-    KeyIdCert,
+    KeyIdCert => "%i";
 
     /// %K: The base64-encoded CA key.
-    Base64EncodedCaKey,
+    Base64EncodedCaKey => "%K";
 
     /// %k: The base64-encoded key or certificate for authentication.
-    Base64EncodedAuthKeyOrCert,
+    Base64EncodedAuthKeyOrCert => "%k";
 
     /// %s: The serial number of the certificate.
-    CertificateSerialNumber,
+    CertificateSerialNumber => "%s";
 
     /// %T: The type of the CA key.
-    CaKeyType,
+    CaKeyType => "%T";
 
     /// %t: The key or certificate type.
-    CertKeyType,
+    CertKeyType => "%t";
 
     /// %U: The numeric user ID of the target user.
-    UserId,
+    UserId => "%U";
 
     /// %u: The username.
-    UserName,
-}
-
-impl<'a> TryFrom<&'a str> for Token {
-    type Error = &'a str;
-
-    fn try_from(value: &'a str) -> Result<Self, Self::Error> {
-        let token = match value {
-            "%C" => Self::ConnectionEndpoints,
-            "%D" => Self::RoutingDomain,
-            "%F" => Self::FingerPrintCaKey,
-            "%f" => Self::FingerPrintCaKeyOrCert,
-            "%h" => Self::HomeDirUser,
-            "%i" => Self::KeyIdCert,
-            "%K" => Self::Base64EncodedCaKey,
-            "%k" => Self::Base64EncodedAuthKeyOrCert,
-            "%s" => Self::CertificateSerialNumber,
-            "%T" => Self::CaKeyType,
-            "%t" => Self::CertKeyType,
-            "%U" => Self::UserId,
-            "%u" => Self::UserName,
-            _ => return Err(value),
-        };
-
-        Ok(token)
-    }
-}
-
-impl Display for Token {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let token = match self {
-            Self::ConnectionEndpoints => "%C",
-            Self::RoutingDomain => "%D",
-            Self::FingerPrintCaKey => "%F",
-            Self::FingerPrintCaKeyOrCert => "%f",
-            Self::HomeDirUser => "%h",
-            Self::KeyIdCert => "%i",
-            Self::Base64EncodedCaKey => "%K",
-            Self::Base64EncodedAuthKeyOrCert => "%k",
-            Self::CertificateSerialNumber => "%s",
-            Self::CaKeyType => "%T",
-            Self::CertKeyType => "%t",
-            Self::UserId => "%U",
-            Self::UserName => "%u",
-        };
-
-        write!(f, "{token}")
-    }
+    UserName => "%u";
 }

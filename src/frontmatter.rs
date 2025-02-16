@@ -6,7 +6,8 @@ use semver::{Version, VersionReq};
 use serde::Deserialize;
 
 use crate::{
-    tokens::Token, Command, CommandTrait, KeysCommand, PrincipalCommand, SshdCommandError,
+    tokens::Token, Command, CommandTrait, KeysCommand, PrincipalCommand,
+    SshdCommandError,
 };
 
 #[derive(Error, Debug)]
@@ -18,7 +19,9 @@ pub enum FrontMatterError {
     )]
     MissingEndSeparator,
 
-    #[error("template requires sshd-command version {1}, but you are running {0}")]
+    #[error(
+        "template requires sshd-command version {1}, but you are running {0}"
+    )]
     InvalidVersion(Version, VersionReq),
     #[error("{1} is not a valid token for {0}")]
     UnsupportedToken(Command, Token),
@@ -54,7 +57,7 @@ impl FrontMatter {
     const SEPARATOR: &'static str = "---";
 
     pub(crate) fn validate(&self) -> Result<(), FrontMatterError> {
-        // Check if the versio is valid
+        // Check if the version is valid
         let version_req = &self.sshd_command.version;
         let crate_version = semver::Version::parse(env!("CARGO_PKG_VERSION"))
             .expect("CARGO_PKG_VERSION is always valid");
@@ -74,14 +77,20 @@ impl FrontMatter {
             Command::Principals => PrincipalCommand::validate_tokens(tokens),
         };
 
-        token_validation.map_err(|token| FrontMatterError::UnsupportedToken(command, token))?;
+        token_validation.map_err(|token| {
+            FrontMatterError::UnsupportedToken(command, token)
+        })?;
 
         Ok(())
     }
 
-    pub(crate) fn parse<R: Read>(reader: &mut BufReader<R>) -> Result<Self, FrontMatterError> {
+    pub(crate) fn parse<R: Read>(
+        reader: &mut BufReader<R>,
+    ) -> Result<Self, FrontMatterError> {
         let mut buf = String::new();
         let mut buf_len;
+
+        // Check if first line is front matter start
         reader
             .read_line(&mut buf)
             .map_err(|e| FrontMatterError::ParseError(Box::new(e)))?;
@@ -89,6 +98,7 @@ impl FrontMatter {
             return Err(FrontMatterError::InvalidFirstLine);
         }
 
+        // Read front matter into `buf` and verify front matter end is present
         buf_len = buf.len();
         while reader.read_line(&mut buf).unwrap_or(0) != 0 {
             if buf[buf_len..].trim_end().eq(Self::SEPARATOR) {
@@ -125,9 +135,7 @@ mod _serde {
 
     use serde::{de::Visitor, Deserialize};
 
-    use crate::tokens::Token;
-
-    use super::FrontMatterTokens;
+    use super::{FrontMatterTokens, Token};
 
     struct FrontMatterTokensVisitor;
 

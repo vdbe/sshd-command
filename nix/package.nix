@@ -23,6 +23,8 @@ rustPlatform.buildRustPackage rec {
         ../Cargo.lock
         ../Cargo.toml
         ../src
+
+        ../rustfmt.toml
       ]
     );
   };

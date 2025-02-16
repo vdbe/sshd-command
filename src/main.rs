@@ -8,12 +8,13 @@ use std::{
 
 fn main() -> Result<ExitCode, Box<dyn Error>> {
     let mut args = env::args().skip(1);
-    let writer = io::stdout();
 
     let template_path = args.next().ok_or("No template path provided")?;
     let template = File::open(&template_path)?;
 
-    if let Err(err) = sshd_command::main(args, &template_path, template, &writer) {
+    if let Err(err) =
+        sshd_command::main(&mut io::stdout(), args, &template_path, template)
+    {
         eprintln!("Error: {err}");
         // TODO: impl source
         if let Some(source) = err.source() {
