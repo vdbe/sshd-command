@@ -24,7 +24,7 @@ concurrency:
   cancel-in-progress: true
 
 permissions:
-  security-events: read
+  security-events: none
 
 jobs:
   build:
