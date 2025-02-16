@@ -133,10 +133,19 @@
         let
           pkgs = nixpkgsFor.${system};
           pkgs' = import ./default.nix { inherit pkgs; };
+
+          static-x86_64-pkgs' = import ./default.nix { pkgs = pkgs.pkgsCross.musl64.pkgsStatic; };
+          static-aarch64-pkgs' = import ./default.nix {
+            pkgs = pkgs.pkgsCross.aarch64-multiplatform.pkgsStatic;
+          };
+
         in
         pkgs'
         // {
           default = pkgs'.sshd-command;
+
+          static-x86_64 = static-x86_64-pkgs'.sshd-command;
+          static-aarch64 = static-aarch64-pkgs'.sshd-command;
         }
       );
     };
