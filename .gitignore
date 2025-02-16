@@ -10,3 +10,6 @@ target/
 result
 result-*
 repl-result-*
+
+# ci
+dist/
