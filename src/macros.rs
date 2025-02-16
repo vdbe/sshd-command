@@ -13,28 +13,33 @@
 ///
 /// # Examples
 ///
-/// ```rust
+/// ```ignore
+/// # #[macro_use] extern crate sshd_command;
+/// # use crate::{error::SshdCommandError, tokens::Token};
 /// // Get an argument without parsing
-/// let username = arg!(token, Token::UserName)
+/// let username = next_arg!(token, Token::UserName);
 ///
 /// // Get an argument and parse it into a `u16`
-/// let port  = arg!(token, u16, Token::ConnectionEndPoints)
-/// let port: u16 = arg!(token, _, Token::ConnectionEndPoints)
+/// let port  = next_arg!(token, u16, Token::ConnectionEndPoints);
+/// let port: u16 = next_arg!(token, _, Token::ConnectionEndPoints);
 /// ```
 macro_rules! next_arg {
     // (0)
     ($args:expr, $token:expr) => {{
-        $args
-            .next()
-            .ok_or(SshdCommandError::MissingTokenArgument($token))?
+        $args.next().ok_or(
+            crate::error::SshdCommandError::MissingTokenArgument($token),
+        )?
     }};
 
     // (1)
     ($args:expr, $ty:ty, $token:expr) => {{
         {
             let arg = next_arg!($args, $token);
-            <$ty>::from_str(&arg).map_err(|_| {
-                SshdCommandError::InvalidTokenArgument($token, arg.clone())
+            <$ty as std::str::FromStr>::from_str(&arg).map_err(|_| {
+                crate::error::SshdCommandError::InvalidTokenArgument(
+                    $token,
+                    arg.clone(),
+                )
             })?
         }
     }};

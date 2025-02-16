@@ -2,7 +2,6 @@ use std::{
     fmt::Display,
     io::{BufReader, Read, Write},
     net::{IpAddr, SocketAddr},
-    str::FromStr,
 };
 
 use serde::{Deserialize, Serialize};
