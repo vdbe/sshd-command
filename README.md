@@ -57,6 +57,53 @@ server01.local
 ```
 </details>
 
+
+## Documentation
+
+### Front matter
+
+Front matter options outside of the `sshd_command` scope are added to the terraform context,
+all options documented below are in the `sshd_command` scope.
+
+- version (REQUIRED)
+  Minimum version required for the template.
+- command (REQUIRED)
+  For what sshd command is the template: `principals`/`keys`.
+- Tokens (REQUIRED)
+  Space seperated list of token provided to the command.
+  If more then 1 this must be quoted.
+- hostname (OPTIONAL)
+  Add the systems hostname to the context
+- complete_user (OPTIONAL)
+  Completes user information from %U or %u (atleast 1 must be provided) with:
+  - user id (`user.uid`)
+  - user name (`user.name`)
+  - primary group id (`user.gid`)
+  - user groups (`user.groups[]`)
+    - group id (`user.groups[].name`)
+    - group name (`user.groups[].gid`)
+
+
+### Tokens/context
+
+| Token | Context           | Frontmatter                             |
+| ----- | ----------------- | --------------------------------------- |
+| `%C`  | `client`/`server` | -                                       |
+| `%D`  | TODO              | -                                       |
+| `%F`  | TODO              | -                                       |
+| `%f`  | TODO              | -                                       |
+| `%h`  | `home_dir`        | -                                       |
+| `%i`  | `key_id`          | -                                       |
+| `%K`  | TODO              | -                                       |
+| `%k`  | TODO              | -                                       |
+| `%S`  | TODO              | -                                       |
+| `%T`  | TODO              | -                                       |
+| `%t`  | TODO              | -                                       |
+| `%U`  | `user.uid`        | `sshd_command.complete_user` (OPTIONAL) |
+| `%u`  | `user.name`       | `sshd_command.complete_user` (OPTIONAL) |
+| -     | `hostname`        | `sshd_command.hostname`                 |
+
+
 ## Thanks to
 - [catppuccin/whiskers](https://github.com/catppuccin/whiskers) for the inspiration
 - [getchoo/nixpkgs-tracker-bot](https://github.com/getchoo/nixpkgs-tracker-bot) for the nix parts
