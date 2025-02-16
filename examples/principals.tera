@@ -10,8 +10,6 @@ search_domains:
     - home.arpa
     - local
 ---
-{{ __tera_context }}
-
 {% macro principals(fqdn) -%}
 {{ fqdn }}
 {{ user.name }}@{{ fqdn }}
