@@ -13,6 +13,9 @@ concurrency:
 
 jobs:
   ci:
+    permissions:
+      security-events: write
+      
     uses: ./.github/workflows/ci.yaml
 
   release:

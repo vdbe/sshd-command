@@ -18,15 +18,13 @@ on:
       - ".github/workflows/ci.yaml"
   workflow_dispatch:
   workflow_call:
-    inputs:
-      release_gate:
-        description: "Run release gate"
-        type: boolean
-        default: false
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.head_ref || github.sha }}
   cancel-in-progress: true
+
+permissions:
+  security-events: read
 
 jobs:
   build:
