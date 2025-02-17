@@ -1,6 +1,6 @@
 use thiserror::Error;
 
-use crate::{frontmatter::FrontMatterError, tokens::Token};
+use crate::{frontmatter::FrontMatterError, Token};
 
 #[derive(Error, Debug)]
 pub enum SshdCommandError {

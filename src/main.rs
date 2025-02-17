@@ -12,9 +12,12 @@ fn main() -> Result<ExitCode, Box<dyn Error>> {
     let template_path = args.next().ok_or("No template path provided")?;
     let template = File::open(&template_path)?;
 
-    if let Err(err) =
-        sshd_command::main(&mut io::stdout(), args, &template_path, template)
-    {
+    if let Err(err) = sshd_command::render_to(
+        &mut io::stdout(),
+        args,
+        &template_path,
+        template,
+    ) {
         eprintln!("Error: {err}");
         // TODO: impl source
         if let Some(source) = err.source() {

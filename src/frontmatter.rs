@@ -6,8 +6,8 @@ use semver::{Version, VersionReq};
 use serde::Deserialize;
 
 use crate::{
-    tokens::Token, Command, CommandTrait, KeysCommand, PrincipalCommand,
-    SshdCommandError,
+    Command, CommandTrait, KeysCommand, PrincipalCommand, SshdCommandError,
+    Token,
 };
 
 #[derive(Error, Debug)]

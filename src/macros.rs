@@ -46,12 +46,18 @@ macro_rules! next_arg {
 }
 
 macro_rules! define_tokens {
-    ( $(
-        $(#[$meta:meta])*
-        $variant:ident => $variant_str:expr;
-    )+ ) => {
-        #[non_exhaustive]
-        #[derive(PartialEq, Eq, Clone, Copy, Debug)]
+    (
+        $(#[$enum_attr:meta])*
+        // explicit separator between doc comment for token and first variant
+        // doc comment
+        ;
+
+        $(
+            $(#[$meta:meta])*
+            $variant:ident => $variant_str:expr;
+        )+
+    ) => {
+        $(#[$enum_attr])*
         pub enum Token {
             $(
                 $(#[$meta])*
