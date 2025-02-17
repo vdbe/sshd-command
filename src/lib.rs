@@ -61,15 +61,16 @@ define_tokens! {
     UserName => "%u";
 }
 
-#[derive(Deserialize, PartialEq, Eq, Clone, Copy, Debug)]
+#[derive(Deserialize, PartialEq, Eq, Clone, Copy, Debug, Default)]
 #[serde(rename_all = "lowercase")]
 pub enum Command {
+    #[default]
     Keys,
     Principals,
 }
 
-enum PrincipalCommand {}
 enum KeysCommand {}
+enum PrincipalCommand {}
 
 trait CommandTrait {
     fn is_token_supported(token: Token) -> bool
@@ -102,6 +103,24 @@ impl Display for Command {
     }
 }
 
+impl CommandTrait for KeysCommand {
+    fn is_token_supported(token: Token) -> bool {
+        use Token as Tk;
+
+        matches!(
+            token,
+            Tk::ConnectionEndpoints
+                | Tk::RoutingDomain
+                | Tk::FingerPrintCaKeyOrCert
+                | Tk::HomeDirUser
+                | Tk::Base64EncodedAuthKeyOrCert
+                | Tk::CertKeyType
+                | Tk::UserId
+                | Tk::UserName
+        )
+    }
+}
+
 impl CommandTrait for PrincipalCommand {
     fn is_token_supported(token: Token) -> bool {
         use Token as Tk;
@@ -118,24 +137,6 @@ impl CommandTrait for PrincipalCommand {
                 | Tk::Base64EncodedAuthKeyOrCert
                 | Tk::CertificateSerialNumber
                 | Tk::CaKeyType
-                | Tk::CertKeyType
-                | Tk::UserId
-                | Tk::UserName
-        )
-    }
-}
-
-impl CommandTrait for KeysCommand {
-    fn is_token_supported(token: Token) -> bool {
-        use Token as Tk;
-
-        matches!(
-            token,
-            Tk::ConnectionEndpoints
-                | Tk::RoutingDomain
-                | Tk::FingerPrintCaKeyOrCert
-                | Tk::HomeDirUser
-                | Tk::Base64EncodedAuthKeyOrCert
                 | Tk::CertKeyType
                 | Tk::UserId
                 | Tk::UserName
