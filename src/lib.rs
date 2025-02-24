@@ -13,7 +13,7 @@ use frontmatter::FrontMatter;
 
 mod context;
 mod error;
-mod frontmatter;
+pub mod frontmatter;
 mod macros;
 
 define_tokens! {
@@ -159,6 +159,8 @@ pub fn render_to<I: Iterator<Item = String>, W: Write, R: Read>(
 ) -> Result<(), SshdCommandError> {
     let mut reader = BufReader::new(template);
     let front_matter = FrontMatter::parse(&mut reader)?;
+
+    front_matter.validate()?;
 
     let context = build_context(front_matter, args)?;
 

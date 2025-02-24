@@ -56,7 +56,14 @@ pub struct FrontMatterTokens(pub(crate) Box<[Token]>);
 impl FrontMatter {
     const SEPARATOR: &'static str = "---";
 
-    pub(crate) fn validate(&self) -> Result<(), FrontMatterError> {
+    /// # Errors
+    ///
+    /// Will return `Err` on invalid front matter.
+    ///
+    /// # Panics
+    ///
+    /// Will panic when failing to parse the current crate version.
+    pub fn validate(&self) -> Result<(), FrontMatterError> {
         // Check if the version is valid
         let version_req = &self.sshd_command.version;
         let crate_version = semver::Version::parse(env!("CARGO_PKG_VERSION"))
@@ -94,7 +101,11 @@ impl FrontMatter {
         Ok(())
     }
 
-    pub(crate) fn parse<R: Read>(
+    /// # Errors
+    ///
+    /// Will return `Err` when failing to parse the provided front matter.
+    ///
+    pub fn parse<R: Read>(
         reader: &mut BufReader<R>,
     ) -> Result<Self, FrontMatterError> {
         let mut buf = String::new();
@@ -116,8 +127,6 @@ impl FrontMatter {
                 let front_matter_str = &buf[..buf_len];
                 let front_matter: Self = serde_yaml::from_str(front_matter_str)
                     .map_err(|e| FrontMatterError::ParseError(Box::new(e)))?;
-
-                front_matter.validate()?;
 
                 return Ok(front_matter);
             }
@@ -224,6 +233,7 @@ sshd_command:
 
         assert!(front_matter.is_ok());
         let front_matter = front_matter.unwrap();
+        assert!(front_matter.validate().is_ok());
 
         let front_matter_expected = FrontMatter {
             sshd_command: FrontMatterSshdCommand {
@@ -261,6 +271,7 @@ search_domains:
 
         assert!(front_matter.is_ok());
         let front_matter = front_matter.unwrap();
+        assert!(front_matter.validate().is_ok());
 
         let mut extra_content = tera::Map::new();
         let _ = extra_content
@@ -281,6 +292,46 @@ search_domains:
         };
         assert_eq!(front_matter, front_matter_expected);
     }
+
+    #[test]
+    fn check_parse_json() {
+        let template = r"---
+sshd_command:
+    version: 0.2.0
+    command: principals
+    tokens: '%U %u'
+    complete_user: true
+    hostname: true
+search_domains:
+    - home.arpa
+    - local
+---
+        ";
+        let template_json = r#"---
+{
+  "sshd_command": {
+    "version": "0.2.0",
+    "command": "principals",
+    "tokens": "%U %u",
+    "complete_user": true,
+    "hostname": true
+  },
+  "search_domains": [
+    "home.arpa",
+    "local"
+  ]
+}
+---
+        "#;
+
+        let mut reader = BufReader::new(template.as_bytes());
+        let front_matter = FrontMatter::parse(&mut reader).unwrap();
+
+        let mut reader = BufReader::new(template_json.as_bytes());
+        let front_matter_json = FrontMatter::parse(&mut reader).unwrap();
+        assert_eq!(front_matter, front_matter_json);
+    }
+
     #[test]
     fn check_parse_next_line() {
         let template = r"---
@@ -372,6 +423,9 @@ sshd_command:
 
         let mut reader = BufReader::new(template.as_bytes());
         let front_matter = FrontMatter::parse(&mut reader);
+
+        assert!(front_matter.is_ok());
+        let front_matter = front_matter.unwrap().validate();
 
         assert!(matches!(
             front_matter,
