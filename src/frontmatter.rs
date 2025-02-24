@@ -14,6 +14,7 @@ use crate::{
 pub enum FrontMatterError {
     #[error("first line must be '---'")]
     InvalidFirstLine,
+
     #[error(
         "missing end separator for frontmatter, template does not contain a second '---' line"
     )]
@@ -23,8 +24,10 @@ pub enum FrontMatterError {
         "template requires sshd-command version {1}, but you are running {0}"
     )]
     InvalidVersion(Version, VersionReq),
+
     #[error("{1} is not a valid token for {0}")]
     UnsupportedToken(Command, Token),
+
     #[error("parse error: {0}")]
     ParseError(Box<dyn std::error::Error>),
 }
@@ -205,6 +208,12 @@ mod tests {
 
     use super::*;
 
+    #[inline]
+    fn crate_version() -> Version {
+        semver::Version::parse(env!("CARGO_PKG_VERSION"))
+            .expect("CARGO_PKG_VERSION is always valid")
+    }
+
     fn update_version(
         version: &Version,
         delta_major: i64,
@@ -220,13 +229,16 @@ mod tests {
 
     #[test]
     fn check_parse() {
-        let template = r"---
+        let template = format!(
+            r"---
 sshd_command:
-    version: 0.2.0
+    version: {}
     command: principals
     tokens: '%U %u'
 ---
-        ";
+        ",
+            crate_version()
+        );
 
         let mut reader = BufReader::new(template.as_bytes());
         let front_matter = FrontMatter::parse(&mut reader);
@@ -253,9 +265,10 @@ sshd_command:
 
     #[test]
     fn check_parse_full() {
-        let template = r"---
+        let template = format!(
+            r"---
 sshd_command:
-    version: 0.2.0
+    version: {}
     command: principals
     tokens: '%U %u'
     complete_user: true
@@ -264,7 +277,9 @@ search_domains:
     - home.arpa
     - local
 ---
-        ";
+        ",
+            crate_version()
+        );
 
         let mut reader = BufReader::new(template.as_bytes());
         let front_matter = FrontMatter::parse(&mut reader);
@@ -295,9 +310,10 @@ search_domains:
 
     #[test]
     fn check_parse_json() {
-        let template = r"---
+        let template = format!(
+            r"---
 sshd_command:
-    version: 0.2.0
+    version: {}
     command: principals
     tokens: '%U %u'
     complete_user: true
@@ -306,23 +322,28 @@ search_domains:
     - home.arpa
     - local
 ---
-        ";
-        let template_json = r#"---
-{
-  "sshd_command": {
-    "version": "0.2.0",
+        ",
+            crate_version()
+        );
+        let template_json = format!(
+            r#"---
+{{
+  "sshd_command": {{
+    "version": "{}",
     "command": "principals",
     "tokens": "%U %u",
     "complete_user": true,
     "hostname": true
-  },
+  }},
   "search_domains": [
     "home.arpa",
     "local"
   ]
-}
+}}
 ---
-        "#;
+        "#,
+            crate_version()
+        );
 
         let mut reader = BufReader::new(template.as_bytes());
         let front_matter = FrontMatter::parse(&mut reader).unwrap();
@@ -334,14 +355,17 @@ search_domains:
 
     #[test]
     fn check_parse_next_line() {
-        let template = r"---
+        let template = format!(
+            r"---
 sshd_command:
-    version: 0.2.0
+    version: {}
     command: principals
     tokens: '%U %u'
 ---
 next-line
-        ";
+        ",
+            crate_version()
+        );
 
         let mut reader = BufReader::new(template.as_bytes());
         let front_matter = FrontMatter::parse(&mut reader);
@@ -357,13 +381,16 @@ next-line
 
     #[test]
     fn check_parse_invalid_first_line() {
-        let template = r"
+        let template = format!(
+            r"
 sshd_command:
-    version: 0.2.0
+    version: {}
     command: principals
     tokens: '%U %u'
 ---
-        ";
+        ",
+            crate_version()
+        );
 
         let mut reader = BufReader::new(template.as_bytes());
         let front_matter = FrontMatter::parse(&mut reader);
@@ -376,12 +403,15 @@ sshd_command:
 
     #[test]
     fn check_parse_missing_end_separator() {
-        let template = r"---
+        let template = format!(
+            r"---
 sshd_command:
-    version: 0.2.0
+    version: {}
     command: principals
     tokens: '%U %u'
-        ";
+        ",
+            crate_version()
+        );
 
         let mut reader = BufReader::new(template.as_bytes());
         let front_matter = FrontMatter::parse(&mut reader);
@@ -394,13 +424,16 @@ sshd_command:
 
     #[test]
     fn check_parse_unkown_token() {
-        let template = r"---
+        let template = format!(
+            r"---
 sshd_command:
-    version: 0.2.0
+    version: {}
     command: principals
     tokens: '%U %u %invalid'
 ---
-        ";
+        ",
+            crate_version()
+        );
 
         let mut reader = BufReader::new(template.as_bytes());
         let front_matter = FrontMatter::parse(&mut reader);
@@ -435,13 +468,16 @@ sshd_command:
 
     #[test]
     fn check_parse_missing_option() {
-        let template = r"---
+        let template = format!(
+            r"---
 sshd_command:
-    version: 0.2.0
+    version: {}
     # command: principals
     tokens: '%U %u'
 ---
-        ";
+        ",
+            crate_version()
+        );
 
         let mut reader = BufReader::new(template.as_bytes());
         let front_matter = FrontMatter::parse(&mut reader);
@@ -455,13 +491,16 @@ sshd_command:
 
     #[test]
     fn check_parse_out_of_order() {
-        let template = r"---
+        let template = format!(
+            r"---
 sshd_command:
     tokens: '%U %u'
-    version: 0.2.0
+    version: {}
     command: principals
 ---
-        ";
+        ",
+            crate_version()
+        );
 
         let mut reader = BufReader::new(template.as_bytes());
         let front_matter = FrontMatter::parse(&mut reader);
@@ -533,9 +572,7 @@ sshd_command:
 
     #[test]
     fn check_validate_required_version() {
-        let crate_version = semver::Version::parse(env!("CARGO_PKG_VERSION"))
-            .expect("CARGO_PKG_VERSION is always valid");
-
+        let crate_version = crate_version();
         let mut front_matter = FrontMatter::default();
 
         if let Some(required_version) = update_version(&crate_version, 0, 0, 0)
