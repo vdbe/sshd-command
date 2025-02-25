@@ -1,4 +1,6 @@
 {
+  description = "Development environment for sshd-command.";
+
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
   };

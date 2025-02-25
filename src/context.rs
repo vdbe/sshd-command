@@ -112,9 +112,9 @@ pub fn build_context<I: Iterator<Item = String>>(
                 context.insert("client", &client);
                 context.insert("server", &server);
             }
-            Token::RoutingDomain => todo!(),
-            Token::FingerPrintCaKey => todo!(),
-            Token::FingerPrintCaKeyOrCert => todo!(),
+            Token::RoutingDomain => unimplemented!(),
+            Token::FingerPrintCaKey => unimplemented!(),
+            Token::FingerPrintCaKeyOrCert => unimplemented!(),
             Token::HomeDirUser => {
                 let home_dir = next_arg!(args, Token::UserName);
                 context.insert("home_dir", &home_dir);
@@ -123,11 +123,11 @@ pub fn build_context<I: Iterator<Item = String>>(
                 let key_id: u32 = next_arg!(args, _, Token::KeyIdCert);
                 context.insert("key_id", &key_id);
             }
-            Token::Base64EncodedCaKey => todo!(),
-            Token::Base64EncodedAuthKeyOrCert => todo!(),
-            Token::CertificateSerialNumber => todo!(),
-            Token::CaKeyType => todo!(),
-            Token::CertKeyType => todo!(),
+            Token::Base64EncodedCaKey => unimplemented!(),
+            Token::Base64EncodedAuthKeyOrCert => unimplemented!(),
+            Token::CertificateSerialNumber => unimplemented!(),
+            Token::CaKeyType => unimplemented!(),
+            Token::CertKeyType => unimplemented!(),
             Token::UserId => {
                 let uid: u32 = next_arg!(args, _, Token::UserId);
                 user.uid = Some(uid);
