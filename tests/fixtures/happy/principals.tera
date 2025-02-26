@@ -1,5 +1,4 @@
 ---
-# /etc/ssh/templates/principals.tera
 sshd_command:
     version: 0.2.0
     command: principals
@@ -14,15 +13,9 @@ search_domains:
 {% macro principals(fqdn) -%}
 {{ fqdn }}
 {{ user.name }}@{{ fqdn }}
-    {%- for group in user.groups  %}
-        {%- if group.gid >= 1000 %}
-@{{- group.name }}@{{ fqdn }}
-        {%- endif %}
-    {%- endfor -%}
 {%- endmacro input -%}
 
 {{- self::principals(fqdn=hostname) }}
 {% for search_domain in search_domains  %}
 {{- self::principals(fqdn=hostname ~ "." ~ search_domain) }}
 {%  endfor -%}
-

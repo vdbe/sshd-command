@@ -36,7 +36,7 @@ FLAGS:
                     env!("CARGO_PKG_DESCRIPTION"),
                 );
 
-                return Ok(ExitCode::FAILURE);
+                return Ok(ExitCode::SUCCESS);
             }
             "-v" | "--validate" => {
                 // Validate the frontmatter, this can be done without requiring

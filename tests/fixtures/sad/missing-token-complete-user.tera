@@ -1,0 +1,8 @@
+---
+sshd_command:
+    version: 0.2.0
+    command: keys
+    tokens: '%h'
+    hostname: false
+    complete_user: true
+---
