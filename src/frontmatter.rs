@@ -6,8 +6,8 @@ use semver::{Version, VersionReq};
 use serde::Deserialize;
 
 use crate::{
-    Command, CommandTrait, KeysCommand, PrincipalCommand, SshdCommandError,
-    Token,
+    crate_version, Command, CommandTrait, KeysCommand, PrincipalCommand,
+    SshdCommandError, Token,
 };
 
 #[derive(Error, Debug)]
@@ -65,12 +65,11 @@ impl FrontMatter {
     ///
     /// # Panics
     ///
-    /// Will panic when failing to parse the current crate version.
+    /// Will panic when [`crate_version`] panics.
     pub fn validate(&self) -> Result<(), FrontMatterError> {
         // Check if the version is valid
         let version_req = &self.sshd_command.version;
-        let crate_version = semver::Version::parse(env!("CARGO_PKG_VERSION"))
-            .expect("CARGO_PKG_VERSION is always valid");
+        let crate_version = crate_version();
         if !version_req.matches(&crate_version) {
             return Err(FrontMatterError::InvalidVersion(
                 crate_version,
@@ -128,8 +127,10 @@ impl FrontMatter {
             if buf[buf_len..].trim_end().eq(Self::SEPARATOR) {
                 // Reached end of frontmatter
                 let front_matter_str = &buf[..buf_len];
-                let front_matter: Self = serde_yaml::from_str(front_matter_str)
-                    .map_err(|e| FrontMatterError::ParseError(Box::new(e)))?;
+                let front_matter: Self =
+                    serde_yaml::from_str(front_matter_str).map_err(|e| {
+                        FrontMatterError::ParseError(Box::new(e))
+                    })?;
 
                 return Ok(front_matter);
             }
@@ -208,12 +209,6 @@ mod tests {
 
     use super::*;
 
-    #[inline]
-    fn crate_version() -> Version {
-        semver::Version::parse(env!("CARGO_PKG_VERSION"))
-            .expect("CARGO_PKG_VERSION is always valid")
-    }
-
     fn update_version(
         version: &Version,
         delta_major: i64,
@@ -289,8 +284,10 @@ search_domains:
         assert!(front_matter.validate().is_ok());
 
         let mut extra_content = tera::Map::new();
-        let _ = extra_content
-            .insert("search_domains".into(), vec!["home.arpa", "local"].into());
+        let _ = extra_content.insert(
+            "search_domains".into(),
+            vec!["home.arpa", "local"].into(),
+        );
 
         let front_matter_expected = FrontMatter {
             sshd_command: FrontMatterSshdCommand {
@@ -595,7 +592,8 @@ sshd_command:
             }
         }
 
-        if let Some(required_version) = update_version(&crate_version, -1, 0, 0)
+        if let Some(required_version) =
+            update_version(&crate_version, -1, 0, 0)
         {
             front_matter.sshd_command.version =
                 VersionReq::from_str(&required_version.to_string()).unwrap();
@@ -620,7 +618,8 @@ sshd_command:
             }
         }
 
-        if let Some(required_version) = update_version(&crate_version, 0, -1, 0)
+        if let Some(required_version) =
+            update_version(&crate_version, 0, -1, 0)
         {
             if required_version.major != 0 {
                 front_matter.sshd_command.version =
@@ -648,7 +647,8 @@ sshd_command:
             }
         }
 
-        if let Some(required_version) = update_version(&crate_version, 0, 0, -1)
+        if let Some(required_version) =
+            update_version(&crate_version, 0, 0, -1)
         {
             front_matter.sshd_command.version =
                 VersionReq::from_str(&required_version.to_string()).unwrap();

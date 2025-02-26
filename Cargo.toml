@@ -3,6 +3,8 @@ version = "0.2.0"
 name = "sshd-command"
 resolver = "2"
 edition = "2021"
+authors = ["vdbe"]
+description = "A simple templating engine for sshd commands."
 
 [[bin]]
 name = "sshd-command"

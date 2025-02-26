@@ -4,6 +4,7 @@
   removeReferencesTo,
   rustPlatform,
   upx,
+  versionCheckHook,
 
   lto ? true,
   optimizeSize ? stdenv.hostPlatform.isStatic,
@@ -34,6 +35,10 @@ rustPlatform.buildRustPackage rec {
   nativeBuildInputs =
     (lib.optional stdenv.hostPlatform.isStatic removeReferencesTo)
     ++ (lib.optional optimizeWithUpx upx);
+
+  doInstallCheck = true;
+  nativeInstallCheckInputs = [ versionCheckHook ];
+  versionCheckProgramArg = [ "--version" ];
 
   # `-C panic="abort"` breaks checks
   doCheck = !optimizeSize;

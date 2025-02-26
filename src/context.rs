@@ -56,7 +56,9 @@ impl User {
                 self.uid = Some(user.uid());
                 user
             }
-            _ => return Err(SshdCommandError::from("Failed to complete user")),
+            _ => {
+                return Err(SshdCommandError::from("Failed to complete user"))
+            }
         };
 
         self.gid = Some(user.primary_group_id());

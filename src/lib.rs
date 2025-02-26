@@ -4,6 +4,7 @@ use std::{
 };
 
 use macros::define_tokens;
+use semver::Version;
 use serde::Deserialize;
 use tera::Tera;
 
@@ -180,4 +181,15 @@ pub fn render_to<I: Iterator<Item = String>, W: Write, R: Read>(
         .map_err(|_| SshdCommandError::Tera)?;
 
     Ok(())
+}
+
+#[inline]
+#[must_use]
+/// # Panics
+///
+/// Will panic when failing to parse the current crate version into a
+/// [`Version`].
+pub fn crate_version() -> Version {
+    semver::Version::parse(env!("CARGO_PKG_VERSION"))
+        .expect("CARGO_PKG_VERSION is always valid")
 }

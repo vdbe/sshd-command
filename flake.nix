@@ -44,6 +44,8 @@
             '';
         in
         lib.optionalAttrs (lib.elem system supportedSystems) {
+          package_sshd-command = packages.default;
+
           clippy = (packages.default.override { lto = false; }).overrideAttrs {
             pname = "check-clippy";
 
