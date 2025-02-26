@@ -1,3 +1,5 @@
+# Arguments: 1000 user
+
 hostname
 user@hostname
 hostname.home.arpa

@@ -10,6 +10,8 @@ search_domains:
     - home.arpa
     - local
 ---
+# Arguments: 1000 user
+
 {% macro principals(fqdn) -%}
 {{ fqdn }}
 {{ user.name }}@{{ fqdn }}
