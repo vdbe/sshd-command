@@ -19,7 +19,7 @@ search_domains:
 @{{- group.name }}@{{ fqdn }}
         {%- endif %}
     {%- endfor -%}
-{%- endmacro input -%}
+{%- endmacro principals -%}
 
 {{- self::principals(fqdn=hostname) }}
 {% for search_domain in search_domains  %}

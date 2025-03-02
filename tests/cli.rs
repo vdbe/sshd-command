@@ -39,6 +39,19 @@ mod happy_path {
             .success()
             .stdout(include_str!("fixtures/happy/principals.out"));
     }
+
+    #[test]
+    fn output_json_principals() {
+        let mut cmd = cmd();
+        cmd.args([
+            "tests/fixtures/happy/json-principals.tera",
+            "1000",
+            "user",
+        ]);
+        cmd.assert()
+            .success()
+            .stdout(include_str!("fixtures/happy/principals.out"));
+    }
 }
 
 #[cfg(test)]
