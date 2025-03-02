@@ -1,14 +1,18 @@
 ---
-sshd_command:
-    version: 0.2.0
-    command: principals
-    tokens: '%U %u'
-    hostname: false
-    complete_user: false
-hostname: hostname
-search_domains:
-    - home.arpa
-    - local
+{
+  "hostname": "hostname",
+  "search_domains": [
+    "home.arpa",
+    "local"
+  ],
+  "sshd_command": {
+    "command": "principals",
+    "complete_user": false,
+    "hostname": false,
+    "tokens": "%U %u",
+    "version": "0.2.0"
+  }
+}
 ---
 # Arguments: 1000 user
 
