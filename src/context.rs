@@ -36,7 +36,7 @@ impl User {
                 let user = get_user_by_uid(uid).ok_or(
                     SshdCommandError::InvalidTokenArgument(
                         Token::UserId,
-                        format!("{uid}"),
+                        uid.to_string(),
                     ),
                 )?;
 
@@ -99,8 +99,8 @@ pub fn build_context<I: Iterator<Item = String>>(
                 // TODO: report what argument is missing not just the token
                 let client_addr: IpAddr =
                     next_arg!(args, _, Token::ConnectionEndpoints);
-                let client_port =
-                    next_arg!(args, u16, Token::ConnectionEndpoints);
+                let client_port: u16 =
+                    next_arg!(args, _, Token::ConnectionEndpoints);
 
                 let client = SocketAddr::new(client_addr, client_port);
 

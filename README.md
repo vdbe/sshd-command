@@ -5,6 +5,7 @@ in combination with a [tera template](https://keats.github.io/tera/).
 
 
 ## Usage
+
 ```
 # /etc/ssh/sshd_config
 # ...
@@ -56,6 +57,67 @@ server01.home.arpa
 server01.local
     user@server01.local
            @admin@server01.local
+```
+</details>
+
+## Installation
+
+Donwload the correct binary from the [latest release](https://github.com/vdbe/sshd-command/releases/tag/v0.2.0).
+
+### Nixos
+
+This project is packaged (and updated/cached) in [vdbe/flake-pkgs](https://github.com/vdbe/flake-pkgs).
+
+package: `legacyPackage.${system}.sshd-command`
+<details close>
+<summary>nixosModule `nixosModules.sshd-command`</summary>
+  
+```nix
+imports = [
+  inputs.mypkgs.nixosModules.sshd-command
+];
+
+services.openssh = {
+  extraConfig = ''
+    TrustedUserCAKeys /etc/ssh/trusted_user_ca
+    AuthorizedPrincipalsCommandUser nobody
+  '';
+
+  sshd-command = {
+    enable = true;
+    package = inpust'.mypkgs.sshd-command;
+    templates = {
+      principals = {
+        sshd-command = {
+          command = "principals";
+          tokens = [
+            "%U"
+            "%u"
+          ];
+        };
+        extraFrontMatter = {
+          search_domains = ["home.arpa" "local"];
+        };
+        tera = ''
+          {% macro principals(fqdn) -%}
+          {{ fqdn }}
+          {{ user.name }}@{{ fqdn }}
+              {%- for group in user.groups  %}
+                  {%- if group.gid >= 1000 %}
+          @{{- group.name }}@{{ fqdn }}
+                  {%- endif %}
+              {%- endfor -%}
+          {%- endmacro principals -%}
+
+          {{- self::principals(fqdn=hostname) }}
+          {% for search_domain in search_domains  %}
+          {{- self::principals(fqdn=hostname ~ "." ~ search_domain) }}
+          {%  endfor -%}
+        '';
+      };
+    };
+  };
+};
 ```
 </details>
 
