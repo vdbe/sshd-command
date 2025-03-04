@@ -15,7 +15,7 @@
 ///
 /// ```ignore
 /// # #[macro_use] extern crate sshd_command;
-/// # use crate::{error::SshdCommandError, tokens::Token};
+/// # use sshd_command::tokens::Token;
 /// // Get an argument without parsing
 /// let username = next_arg!(token, Token::UserName);
 ///
@@ -48,7 +48,7 @@ macro_rules! next_arg {
 macro_rules! define_tokens {
     (
         $(#[$enum_attr:meta])*
-        // explicit separator between doc comment for token and first variant
+        // Explicit separator between doc comment for token and first variant
         // doc comment
         ;
 
@@ -77,7 +77,7 @@ macro_rules! define_tokens {
 
         impl std::fmt::Display for Token {
             fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                write!(f, "{}", self.as_str())
+                f.write_str(self.as_str())
             }
         }
 
