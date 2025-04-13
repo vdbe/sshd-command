@@ -171,7 +171,7 @@ mod _serde {
         type Value = Box<[Token]>;
 
         fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-            formatter.write_str("a space seperated list of sshd_config tokens, see sshd_config(5) for all valid tokens.")
+            formatter.write_str("a space separated list of sshd_config tokens, see sshd_config(5) for all valid tokens.")
         }
 
         fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
@@ -427,7 +427,7 @@ sshd_command:
     }
 
     #[test]
-    fn check_parse_unkown_token() {
+    fn check_parse_unknown_token() {
         let template = format!(
             r"---
 sshd_command:

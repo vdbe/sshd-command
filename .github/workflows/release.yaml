@@ -11,6 +11,8 @@ concurrency:
   group: release-${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.head_ref || github.sha }}
   cancel-in-progress: true
 
+permissions: {}
+
 jobs:
   ci:
     permissions:
@@ -29,12 +31,12 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
         with:
           persist-credentials: false
 
       - name: Install Nix
-        uses: cachix/install-nix-action@V27
+        uses: cachix/install-nix-action@d1ca217b388ee87b2507a9a93bf01368bde7cec2 # v31
 
       - name: Run build - static-x86_64
         run: |
@@ -49,7 +51,7 @@ jobs:
           cp result/bin/sshd-command dist/sshd-command-aarch64
 
       - name: Create Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@c95fe1489396fe8a9eb87c0abf8aa5b2ef267fda # v2
         if: startsWith(github.ref, 'refs/tags/') # Don't create a release on dispatch
         with:
           draft: true

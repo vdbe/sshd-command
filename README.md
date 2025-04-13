@@ -63,7 +63,7 @@ server01.local
 
 ## Installation
 
-Donwload the correct binary from the [latest release](https://github.com/vdbe/sshd-command/releases/tag/v0.2.0).
+Download the correct binary from the [latest release](https://github.com/vdbe/sshd-command/releases/tag/v0.2.0).
 
 ### Nixos
 
@@ -86,7 +86,7 @@ services.openssh = {
 
   sshd-command = {
     enable = true;
-    package = inpust'.mypkgs.sshd-command;
+    package = inputs'.mypkgs.sshd-command;
     templates = {
       principals = {
         sshd-command = {
@@ -135,7 +135,7 @@ all options documented below are in the `sshd_command` scope.
 - command (REQUIRED)
   For what sshd command is the template: `principals`/`keys`.
 - Tokens (REQUIRED)
-  Space seperated list of token provided to the command.
+  Space separated list of token provided to the command.
   If more then 1 this must be quoted.
 - hostname (OPTIONAL)
   Add the systems hostname to the context

@@ -90,7 +90,7 @@ impl User {
 
     pub(crate) fn get_current_name() -> String {
         get_current_username()
-            .unwrap_or_else(|| "unkown".into())
+            .unwrap_or_else(|| "unknown".into())
             .to_str()
             .expect("Failed to convert username to a str")
             .to_string()

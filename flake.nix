@@ -87,11 +87,18 @@
             pkgs.actionlint
           ] "actionlint ${self}/.github/workflows/*";
 
+          zizmor = mkCheck "check-zizmor" [
+            pkgs.zizmor
+          ] "zizmor --pedantic ${self}";
+
+          typos = mkCheck "check-typos" [ pkgs.typos ] "typos --hidden ${self}";
+
           deadnix = mkCheck "check-deadnix" [ pkgs.deadnix ] "deadnix --fail ${self}";
 
           nixfmt = mkCheck "check-nixfmt" [ pkgs.nixfmt-rfc-style ] "nixfmt --check ${self}";
 
           statix = mkCheck "check-statix" [ pkgs.statix ] "statix check ${self}";
+
         }
       );
 
