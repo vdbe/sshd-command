@@ -28,7 +28,20 @@ mod happy_path {
     fn validate_principals() {
         let mut cmd = cmd();
         cmd.args(["--validate", "tests/fixtures/happy/principals.tera"]);
-        cmd.assert().success();
+        cmd.assert()
+            .success()
+            .stdout(predicates::str::is_empty())
+            .stderr(predicates::str::is_empty());
+    }
+
+    #[test]
+    fn check_principals() {
+        let mut cmd = cmd();
+        cmd.args(["--check", "tests/fixtures/happy/principals.tera"]);
+        cmd.assert()
+            .success()
+            .stdout(predicates::str::is_empty())
+            .stderr(predicates::str::is_empty());
     }
 
     #[test]
@@ -37,7 +50,8 @@ mod happy_path {
         cmd.args(["tests/fixtures/happy/principals.tera", "1000", "user"]);
         cmd.assert()
             .success()
-            .stdout(include_str!("fixtures/happy/principals.out"));
+            .stdout(include_str!("fixtures/happy/principals.out"))
+            .stderr(predicates::str::is_empty());
     }
 
     #[test]
@@ -50,7 +64,8 @@ mod happy_path {
         ]);
         cmd.assert()
             .success()
-            .stdout(include_str!("fixtures/happy/principals.out"));
+            .stdout(include_str!("fixtures/happy/principals.out"))
+            .stderr(predicates::str::is_empty());
     }
 }
 
@@ -93,5 +108,29 @@ mod sad_path {
         cmd.assert().failure().stderr(predicate::str::contains(
             "token required for `complete_user",
         ));
+    }
+
+    #[test]
+    fn missing_tera_context() {
+        let mut cmd = cmd();
+        cmd.args(["--check", "tests/fixtures/sad/missing-context.tera"]);
+        cmd.assert().failure().stderr(predicate::str::contains(
+            "Variable `doest_not_exist` not found",
+        ));
+    }
+
+    #[test]
+    fn missing_validate_and_check() {
+        let mut cmd1 = cmd();
+        cmd1.args(["--validate", "tests/fixtures/sad/missing-context.tera"]);
+        cmd1.assert().success();
+
+        let mut cmd2 = cmd();
+        cmd2.args([
+            "--validate",
+            "--check",
+            "tests/fixtures/sad/missing-context.tera",
+        ]);
+        cmd2.assert().failure();
     }
 }

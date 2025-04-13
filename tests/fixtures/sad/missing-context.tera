@@ -2,7 +2,8 @@
 sshd_command:
     version: 0.3.0
     command: keys
-    tokens: '%h'
+    tokens: ''
     hostname: false
-    complete_user: true
+    complete_user: false
 ---
+{{ doest_not_exist }}

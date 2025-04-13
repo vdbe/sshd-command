@@ -14,7 +14,7 @@ pub enum SshdCommandError {
     InvalidTokenArgument(Token, String),
 
     #[error("tera")]
-    Tera,
+    Tera(#[from] tera::Error),
 
     #[error("general error")]
     Unknown(Box<dyn std::error::Error>),
@@ -25,3 +25,8 @@ impl From<&str> for SshdCommandError {
         Self::Unknown(value.into())
     }
 }
+// impl From<tera::Error> for SshdCommandError {
+//     fn from(value: tera::Error) -> Self {
+//         Self::Tera(value)
+//     }
+// }

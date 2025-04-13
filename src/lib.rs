@@ -8,7 +8,7 @@ use semver::Version;
 use serde::Deserialize;
 use tera::Tera;
 
-use context::build_context;
+use context::{build_context, User};
 use error::SshdCommandError;
 use frontmatter::FrontMatter;
 
@@ -60,6 +60,40 @@ define_tokens! {
 
     /// %u: The username.
     UserName => "%u";
+}
+
+impl Token {
+    #[must_use]
+    pub fn get_template_args(tokens: &[Self]) -> Vec<String> {
+        let placeholder_tokens: Vec<String> = tokens
+            .iter()
+            .map(|token| match token {
+                Self::ConnectionEndpoints => String::from("::1 22 ::1 41644"),
+                Self::RoutingDomain => String::from("127.0.0.1/8"),
+                Self::FingerPrintCaKey => String::from("_FingerPrintCaKey_"),
+                Self::FingerPrintCaKeyOrCert => {
+                    String::from("_FingerPrintCaKeyOrCert_")
+                }
+                Self::HomeDirUser => String::from("/home/place_holder_user"),
+                Self::KeyIdCert => String::from("_KeyIdCert_"),
+                Self::Base64EncodedCaKey => {
+                    String::from("X0Jhc2U2NEVuY29kZWRDYUtleV8=")
+                }
+                Self::Base64EncodedAuthKeyOrCert => {
+                    String::from("X0Jhc2U2NEVuY29kZWRBdXRoS2V5T3JDZXJ0Xw==")
+                }
+                Self::CertificateSerialNumber => String::from("0"),
+                Self::CaKeyType => String::from("sha2-nistp384"),
+                Self::CertKeyType => {
+                    String::from("ssh-ed25519-cert-v01@openssh.com")
+                }
+                Self::UserId => User::get_current_uid().to_string(),
+                Self::UserName => User::get_current_name(),
+            })
+            .collect();
+
+        placeholder_tokens
+    }
 }
 
 #[derive(Deserialize, PartialEq, Eq, Clone, Copy, Debug, Default)]
@@ -152,8 +186,8 @@ impl CommandTrait for PrincipalCommand {
 /// # Panics
 ///
 /// Will panic on `OsStr::to_str()` errors.
-pub fn render_to<I: Iterator<Item = String>, W: Write, R: Read>(
-    writer: &mut W,
+pub fn render_to<I: Iterator<Item = String>, R: Read>(
+    writer: &mut dyn Write,
     args: I,
     template_name: &str,
     template: R,
@@ -173,12 +207,10 @@ pub fn render_to<I: Iterator<Item = String>, W: Write, R: Read>(
 
     // Load tera template
     let mut tera = Tera::default();
-    tera.add_raw_template(template_name, &buf)
-        .map_err(|_| SshdCommandError::Tera)?;
+    tera.add_raw_template(template_name, &buf)?;
 
     // Render tera template
-    tera.render_to(template_name, &context, writer)
-        .map_err(|_| SshdCommandError::Tera)?;
+    tera.render_to(template_name, &context, writer)?;
 
     Ok(())
 }

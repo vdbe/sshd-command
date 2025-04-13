@@ -42,7 +42,8 @@ search_domains:
 {%  endfor -%}
 ```
 
-You can validate the front matter with `sshd-command --validate <template>`.
+You can validate the front matter with `sshd-command --validate <template>`
+or check the entire template witch `sshd-command --check <template>`
 
 <details open>
 <summary>Output: user@server01: @admin</summary>

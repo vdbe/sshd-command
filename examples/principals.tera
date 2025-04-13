@@ -1,12 +1,11 @@
 ---
 # /etc/ssh/templates/principals.tera
 sshd_command:
-    version: 0.2.0
+    version: 0.3.0
     command: principals
     tokens: '%U %u'
-    hostname: false
-    complete_user: false
-hostname: hostname
+    hostname: true
+    complete_user: true
 search_domains:
     - home.arpa
     - local

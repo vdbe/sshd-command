@@ -2,14 +2,16 @@ use std::net::{IpAddr, SocketAddr};
 
 use serde::Serialize;
 use tera::Context;
-use uzers::{get_user_by_name, get_user_by_uid};
+use uzers::{
+    get_current_uid, get_current_username, get_user_by_name, get_user_by_uid,
+};
 
 use crate::{
     error::SshdCommandError, frontmatter::FrontMatter, macros::next_arg, Token,
 };
 
 #[derive(Debug, Default, Serialize)]
-struct User {
+pub struct User {
     #[serde(skip_serializing_if = "Option::is_none")]
     gid: Option<u32>,
 
@@ -81,14 +83,25 @@ impl User {
 
         Ok(())
     }
+
+    pub(crate) fn get_current_uid() -> u32 {
+        get_current_uid()
+    }
+
+    pub(crate) fn get_current_name() -> String {
+        get_current_username()
+            .unwrap_or_else(|| "unkown".into())
+            .to_str()
+            .expect("Failed to convert username to a str")
+            .to_string()
+    }
 }
 
 pub fn build_context<I: Iterator<Item = String>>(
     front_matter: FrontMatter,
     mut args: I,
 ) -> Result<Context, SshdCommandError> {
-    let mut context = Context::from_value(front_matter.extra_context)
-        .map_err(|_| SshdCommandError::Tera)?;
+    let mut context = Context::from_value(front_matter.extra_context)?;
 
     let mut user = User::default();
 

@@ -59,6 +59,11 @@ pub struct FrontMatterTokens(pub(crate) Box<[Token]>);
 impl FrontMatter {
     const SEPARATOR: &'static str = "---";
 
+    #[must_use]
+    pub const fn tokens(&self) -> &[Token] {
+        self.sshd_command.tokens()
+    }
+
     /// # Errors
     ///
     /// Will return `Err` on invalid front matter.
@@ -249,7 +254,8 @@ sshd_command:
                     Token::UserId,
                     Token::UserName,
                 ])),
-                version: VersionReq::from_str("0.2.0").unwrap(),
+                version: VersionReq::parse(&crate_version().to_string())
+                    .expect("Failed to parse crate version as `VersionReq`"),
                 complete_user: false,
                 hostname: false,
             },
@@ -296,7 +302,8 @@ search_domains:
                     Token::UserId,
                     Token::UserName,
                 ])),
-                version: VersionReq::from_str("0.2.0").unwrap(),
+                version: VersionReq::parse(&crate_version().to_string())
+                    .expect("Failed to parse crate version as `VersionReq`"),
                 complete_user: true,
                 hostname: true,
             },
