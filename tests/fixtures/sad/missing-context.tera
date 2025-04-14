@@ -6,4 +6,4 @@ sshd_command:
     hostname: false
     complete_user: false
 ---
-{{ doest_not_exist }}
+{{ does_not_exist }}

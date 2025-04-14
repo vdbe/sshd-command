@@ -3,7 +3,6 @@ use std::{
     io::{BufReader, Read, Write},
 };
 
-use macros::define_tokens;
 use semver::Version;
 use serde::Deserialize;
 use tera::Tera;
@@ -11,6 +10,7 @@ use tera::Tera;
 use context::{build_context, User};
 use error::SshdCommandError;
 use frontmatter::FrontMatter;
+use macros::define_tokens;
 
 mod context;
 mod error;
@@ -65,6 +65,7 @@ define_tokens! {
 impl Token {
     #[must_use]
     pub fn get_template_args(tokens: &[Self]) -> Vec<String> {
+        // TODO: find better placeholders
         let placeholder_tokens: Vec<String> = tokens
             .iter()
             .map(|token| match token {
@@ -74,7 +75,7 @@ impl Token {
                 Self::FingerPrintCaKeyOrCert => {
                     String::from("_FingerPrintCaKeyOrCert_")
                 }
-                Self::HomeDirUser => String::from("/home/place_holder_user"),
+                Self::HomeDirUser => String::from("/home/placeholder_user"),
                 Self::KeyIdCert => String::from("_KeyIdCert_"),
                 Self::Base64EncodedCaKey => {
                     String::from("X0Jhc2U2NEVuY29kZWRDYUtleV8=")

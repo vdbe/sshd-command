@@ -17,7 +17,7 @@ AuthorizedPrincipalsCommandUser nobody
 ---
 # /etc/ssh/templates/principals.tera
 sshd_command:
-    version: 0.1.0
+    version: 0.3.0
     command: principals
     tokens: '%U %u'
     hostname: true

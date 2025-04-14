@@ -25,8 +25,3 @@ impl From<&str> for SshdCommandError {
         Self::Unknown(value.into())
     }
 }
-// impl From<tera::Error> for SshdCommandError {
-//     fn from(value: tera::Error) -> Self {
-//         Self::Tera(value)
-//     }
-// }

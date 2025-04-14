@@ -6,7 +6,18 @@ use std::{
     process::ExitCode,
 };
 
-use sshd_command::{crate_version, frontmatter::FrontMatter, Token};
+use sshd_command::{
+    crate_version, frontmatter::FrontMatter, render_to, Token,
+};
+
+fn print_error_chain(mut err: &dyn Error) {
+    eprintln!("Error: {err}");
+
+    while let Some(source) = err.source() {
+        eprintln!("Caused by: {source}");
+        err = source;
+    }
+}
 
 fn main() -> Result<ExitCode, Box<dyn Error>> {
     let mut args = env::args().skip(1).peekable();
@@ -88,22 +99,11 @@ FLAGS:
         (&mut io::empty(), &mut args.chain(placeholder_args))
     };
 
-    if let Err(err) =
-        sshd_command::render_to(writer, args, &template_path, reader)
-    {
+    if let Err(err) = render_to(writer, args, &template_path, reader) {
         print_error_chain(&err);
 
         return Ok(ExitCode::FAILURE);
     };
 
     Ok(ExitCode::SUCCESS)
-}
-
-fn print_error_chain(mut err: &dyn Error) {
-    eprintln!("Error: {err}");
-
-    while let Some(source) = err.source() {
-        eprintln!("Caused by: {source}");
-        err = source;
-    }
 }

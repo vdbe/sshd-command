@@ -1,12 +1,13 @@
 use assert_cmd::Command;
+use predicates::prelude::predicate;
 
 fn cmd() -> Command {
     Command::cargo_bin("sshd-command").expect("binary exists")
 }
+
 #[cfg(test)]
 mod happy_path {
     use super::*;
-    use predicates::prelude::predicate;
 
     #[test]
     fn argument_help() {
@@ -30,8 +31,8 @@ mod happy_path {
         cmd.args(["--validate", "tests/fixtures/happy/principals.tera"]);
         cmd.assert()
             .success()
-            .stdout(predicates::str::is_empty())
-            .stderr(predicates::str::is_empty());
+            .stdout(predicate::str::is_empty())
+            .stderr(predicate::str::is_empty());
     }
 
     #[test]
@@ -40,8 +41,8 @@ mod happy_path {
         cmd.args(["--check", "tests/fixtures/happy/principals.tera"]);
         cmd.assert()
             .success()
-            .stdout(predicates::str::is_empty())
-            .stderr(predicates::str::is_empty());
+            .stdout(predicate::str::is_empty())
+            .stderr(predicate::str::is_empty());
     }
 
     #[test]
@@ -51,7 +52,7 @@ mod happy_path {
         cmd.assert()
             .success()
             .stdout(include_str!("fixtures/happy/principals.out"))
-            .stderr(predicates::str::is_empty());
+            .stderr(predicate::str::is_empty());
     }
 
     #[test]
@@ -65,17 +66,16 @@ mod happy_path {
         cmd.assert()
             .success()
             .stdout(include_str!("fixtures/happy/principals.out"))
-            .stderr(predicates::str::is_empty());
+            .stderr(predicate::str::is_empty());
     }
 }
 
 #[cfg(test)]
 mod sad_path {
     use super::*;
-    use predicates::prelude::predicate;
 
     #[test]
-    fn nonexistent_template_arg() {
+    fn non_existent_template_arg() {
         cmd()
             .assert()
             .failure()
@@ -83,7 +83,7 @@ mod sad_path {
     }
 
     #[test]
-    fn nonexistent_template_path() {
+    fn non_existent_template_path() {
         let mut cmd = cmd();
         cmd.arg("test/file/doesnt/exist");
         cmd.assert()
@@ -115,16 +115,18 @@ mod sad_path {
         let mut cmd = cmd();
         cmd.args(["--check", "tests/fixtures/sad/missing-context.tera"]);
         cmd.assert().failure().stderr(predicate::str::contains(
-            "Variable `doest_not_exist` not found",
+            "Variable `does_not_exist` not found",
         ));
     }
 
     #[test]
-    fn missing_validate_and_check() {
+    fn validate_and_check() {
+        // Front matter is valid
         let mut cmd1 = cmd();
         cmd1.args(["--validate", "tests/fixtures/sad/missing-context.tera"]);
         cmd1.assert().success();
 
+        // but the tera template itself is not
         let mut cmd2 = cmd();
         cmd2.args([
             "--validate",

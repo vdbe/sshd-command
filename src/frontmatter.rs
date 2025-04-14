@@ -1,9 +1,8 @@
 use std::io::{BufRead, BufReader, Read};
 
-use thiserror::Error;
-
 use semver::{Version, VersionReq};
 use serde::Deserialize;
+use thiserror::Error;
 
 use crate::{
     crate_version, Command, CommandTrait, KeysCommand, PrincipalCommand,
@@ -39,6 +38,7 @@ pub struct FrontMatter {
     #[serde(flatten)]
     pub(crate) extra_context: tera::Value,
 }
+
 #[derive(Deserialize, PartialEq, Eq, Debug, Default)]
 #[serde(deny_unknown_fields)]
 pub struct FrontMatterSshdCommand {
@@ -89,6 +89,7 @@ impl FrontMatter {
             Command::Keys => KeysCommand::validate_tokens(tokens),
             Command::Principals => PrincipalCommand::validate_tokens(tokens),
         };
+
         token_validation.map_err(|token| {
             FrontMatterError::UnsupportedToken(command, token)
         })?;
@@ -121,7 +122,7 @@ impl FrontMatter {
         // Check if first line is front matter start
         reader
             .read_line(&mut buf)
-            .map_err(|e| FrontMatterError::ParseError(Box::new(e)))?;
+            .map_err(|err| FrontMatterError::ParseError(Box::new(err)))?;
         if !buf.trim_end().eq(Self::SEPARATOR) {
             return Err(FrontMatterError::InvalidFirstLine);
         }
@@ -133,8 +134,8 @@ impl FrontMatter {
                 // Reached end of frontmatter
                 let front_matter_str = &buf[..buf_len];
                 let front_matter: Self =
-                    serde_yaml::from_str(front_matter_str).map_err(|e| {
-                        FrontMatterError::ParseError(Box::new(e))
+                    serde_yaml::from_str(front_matter_str).map_err(|err| {
+                        FrontMatterError::ParseError(Box::new(err))
                     })?;
 
                 return Ok(front_matter);
@@ -208,7 +209,6 @@ mod _serde {
 
 #[cfg(test)]
 mod tests {
-
     use core::panic;
     use std::str::FromStr;
 
