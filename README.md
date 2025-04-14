@@ -63,7 +63,7 @@ server01.local
 
 ## Installation
 
-Download the correct binary from the [latest release](https://github.com/vdbe/sshd-command/releases/tag/v0.2.0).
+Download the correct binary from the [latest release](https://github.com/vdbe/sshd-command/releases/latest).
 
 ### Nixos
 
