@@ -69,7 +69,7 @@ Download the correct binary from the [latest release](https://github.com/vdbe/ss
 
 This project is packaged (and updated/cached) in [vdbe/flake-pkgs](https://github.com/vdbe/flake-pkgs).
 
-package: `legacyPackage.${system}.sshd-command`
+package: `legacyPackages.${system}.sshd-command`
 <details close>
 <summary>nixosModule `nixosModules.sshd-command`</summary>
   
