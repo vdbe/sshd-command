@@ -1,7 +1,8 @@
 # sshd-command
 
-Sshd-command is tool to be used a `AuthorizedKeysCommand`/`AuthorizedPrincipalsCommand` (see SSHD_CONFIG(5))
-in combination with a [tera template](https://keats.github.io/tera/).
+Sshd-command is tool to be used a `AuthorizedKeysCommand`/`AuthorizedPrincipalsCommand` (see
+[SSHD_CONFIG(5)](https://man7.org/linux/man-pages/man5/sshd_config.5.html)) in combination with a
+[tera template](https://keats.github.io/tera/).
 
 
 ## Usage
