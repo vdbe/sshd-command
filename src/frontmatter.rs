@@ -638,7 +638,7 @@ sshd_command:
                 {
                     panic!();
                 }
-            };
+            }
         }
 
         if let Some(required_version) = update_version(&crate_version, 0, 0, 1)

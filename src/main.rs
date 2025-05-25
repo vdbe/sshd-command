@@ -103,7 +103,7 @@ FLAGS:
         print_error_chain(&err);
 
         return Ok(ExitCode::FAILURE);
-    };
+    }
 
     Ok(ExitCode::SUCCESS)
 }

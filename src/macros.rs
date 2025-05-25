@@ -9,7 +9,7 @@
 /// - (1) `arg!($args, $ty, $token)`
 ///   Take argument from iterator with (0) and parses it into type `$ty` with
 ///   `<$ty>::from_str`.
-///    On failure return `Err(SshdCommandError::InvalidArgumentToken($token))`.
+///   On failure return `Err(SshdCommandError::InvalidArgumentToken($token))`.
 ///
 /// # Examples
 ///
