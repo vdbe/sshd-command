@@ -36,7 +36,7 @@ jobs:
           persist-credentials: false
 
       - name: Install Nix
-        uses: cachix/install-nix-action@754537aaedb35f72ab11a60cc162c49ef3016495 # v31
+        uses: cachix/install-nix-action@17fe5fb4a23ad6cbbe47d6b3f359611ad276644c # v31
 
       - name: Run build - static-x86_64
         run: |
@@ -51,7 +51,7 @@ jobs:
           cp result/bin/sshd-command dist/sshd-command-aarch64
 
       - name: Create Release
-        uses: softprops/action-gh-release@da05d552573ad5aba039eaac05058a918a7bf631 # v2
+        uses: softprops/action-gh-release@72f2c25fcb47643c292f7107632f7a47c1df5cd8 # v2
         if: startsWith(github.ref, 'refs/tags/') # Don't create a release on dispatch
         with:
           draft: true
