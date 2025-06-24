@@ -48,6 +48,9 @@ jobs:
       - name: Install Nix
         uses: cachix/install-nix-action@754537aaedb35f72ab11a60cc162c49ef3016495 # v31
 
+      - name: Setup cache
+        uses: DeterminateSystems/magic-nix-cache-action@def9f5a5c6a6b8751c0534e8813a5d0ad2635660 # v11
+
       - name: Run build
         run: |
           nix build --print-build-logs .#
@@ -67,6 +70,9 @@ jobs:
 
       - name: Install Nix
         uses: cachix/install-nix-action@754537aaedb35f72ab11a60cc162c49ef3016495 # v31
+
+      - name: Setup cache
+        uses: DeterminateSystems/magic-nix-cache-action@def9f5a5c6a6b8751c0534e8813a5d0ad2635660 # v11
 
       - name: Run clippy check
         id: save-clippy
