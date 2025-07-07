@@ -38,7 +38,7 @@ jobs:
         uses: cachix/install-nix-action@f0fe604f8a612776892427721526b4c7cfb23aba # v31
 
       - name: Setup cache
-        uses: DeterminateSystems/magic-nix-cache-action@def9f5a5c6a6b8751c0534e8813a5d0ad2635660 # v11
+        uses: DeterminateSystems/magic-nix-cache-action@e1c1dae8e170ed20fd2e6aaf9979ca2d3905d636 # v12
 
       - name: Run build - static-x86_64
         run: |
