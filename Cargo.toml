@@ -16,7 +16,7 @@ semver = { version = "1.0.25", features = ["serde"] }
 serde = { version = "1.0.217", features = ["derive"] }
 serde_yaml = "0.9.34"
 tera = { version = "1.20.0", default-features = false }
-thiserror = "2.0.11"
+thiserror = "2.0.15"
 uzers = { version = "0.12.1", default-features = false }
 
 [dev-dependencies]
