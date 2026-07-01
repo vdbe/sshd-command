@@ -24,7 +24,7 @@ concurrency:
   cancel-in-progress: true
 
 permissions:
-  security-events: none
+  security-events: none # no SARIF uploads at workflow level; only upload-sarif job needs write
 
 jobs:
   build:
@@ -108,9 +108,7 @@ jobs:
     if: needs.format-and-lint.outputs.sarif_uploaded == 'true'
 
     permissions:
-      security-events: write
-      # actions: read
-      # contents: read
+      security-events: write # required to upload SARIF results to GitHub code scanning
 
     steps:
       - name: Download SARIF artifact

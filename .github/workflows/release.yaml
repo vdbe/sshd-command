@@ -3,7 +3,7 @@ name: Release
 on:
   push:
     tags:
-      - "v*.*.*" 
+      - "v*.*.*"
   workflow_dispatch: # zizmor: ignore[cache-poisoning]
 
 concurrency:
@@ -15,14 +15,14 @@ permissions: {}
 jobs:
   ci:
     permissions:
-      security-events: write
-      
+      security-events: write # required for CI workflow SARIF upload
+
     uses: ./.github/workflows/ci.yaml
 
   release:
     name: Release
     permissions:
-      contents: write
+      contents: write # required to create a GitHub Release
 
     needs: [ci]
 
@@ -53,11 +53,13 @@ jobs:
           cp result/bin/sshd-command dist/sshd-command-aarch64
 
       - name: Create Release
-        uses: softprops/action-gh-release@153bb8e04406b158c6c84fc1615b65b24149a1fe # v2
         if: startsWith(github.ref, 'refs/tags/') # Don't create a release on dispatch
-        with:
-          draft: true
-          files: |
-            LICENSE
-            dist/sshd-command-x86_64
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          gh release create "$TAG" \
+            --draft \
+            LICENSE \
+            dist/sshd-command-x86_64 \
             dist/sshd-command-aarch64
