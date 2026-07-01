@@ -27,20 +27,21 @@ search_domains:
     - home.arpa
     - local
 ---
-{% macro principals(fqdn) -%}
-    {{ fqdn }}
-    {{ user.name }}@{{ fqdn }}
-    {%- for group in user.groups  %}
-        {%- if group.gid >= 1000 %}
-           @{{- group.name }}@{{ fqdn }}
-        {%- endif %}
-    {%- endfor -%}
-{%- endmacro input -%}
+{% component principals(fqdn: string, user: map) -%}
+    {{ fqdn ~ "\n" -}}
+    {{ user.name }}@{{ fqdn ~ "\n" -}}
+    {% for group in user.groups %}
+        {%- if group.gid >= 1000 -%}
+            @{{ group.name }}@{{ fqdn -}}
+        {% endif -%}
+    {% endfor -%}
+{% endcomponent principals -%}
 
-{{- self::principals(fqdn=hostname) }}
-{% for search_domain in search_domains  %}
-    {{- self::principals(fqdn=hostname ~ "." ~ search_domain) }}
-{%  endfor -%}
+{{<principals fqdn={hostname} user={user} />}}
+
+{%- for search_domain in search_domains %}
+{{<principals fqdn={(hostname ~ "." ~ search_domain)} user={user} />}}
+{%- endfor -%}
 ```
 
 You can validate the front matter with `sshd-command --validate <template>`
@@ -51,14 +52,14 @@ or check the entire template witch `sshd-command --check <template>`
     
 ```
 server01
-    user@server01
-           @admin@server01
+user@server01
+@admin@server01
 server01.home.arpa
-    user@server01.home.arpa
-           @admin@server01.home.arpa
+user@server01.home.arpa
+@admin@server01.home.arpa
 server01.local
-    user@server01.local
-           @admin@server01.local
+user@server01.local
+@admin@server01.local
 ```
 </details>
 
@@ -101,20 +102,21 @@ services.openssh = {
           search_domains = ["home.arpa" "local"];
         };
         tera = ''
-          {% macro principals(fqdn) -%}
-          {{ fqdn }}
-          {{ user.name }}@{{ fqdn }}
-              {%- for group in user.groups  %}
-                  {%- if group.gid >= 1000 %}
-          @{{- group.name }}@{{ fqdn }}
-                  {%- endif %}
-              {%- endfor -%}
-          {%- endmacro principals -%}
+          {% component principals(fqdn: string, user: map) -%}
+              {{ fqdn ~ "\n" -}}
+              {{ user.name }}@{{ fqdn ~ "\n" -}}
+              {% for group in user.groups %}
+                  {%- if group.gid >= 1000 -%}
+                      @{{ group.name }}@{{ fqdn -}}
+                  {% endif -%}
+              {% endfor -%}
+          {% endcomponent principals -%}
 
-          {{- self::principals(fqdn=hostname) }}
-          {% for search_domain in search_domains  %}
-          {{- self::principals(fqdn=hostname ~ "." ~ search_domain) }}
-          {%  endfor -%}
+          {{<principals fqdn={hostname} user={user} />}}
+
+          {%- for search_domain in search_domains %}
+          {{<principals fqdn={(hostname ~ "." ~ search_domain)} user={user} />}}
+          {%- endfor -%}
         '';
       };
     };

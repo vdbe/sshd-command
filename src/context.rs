@@ -101,7 +101,12 @@ pub fn build_context<I: Iterator<Item = String>>(
     front_matter: FrontMatter,
     mut args: I,
 ) -> Result<Context, SshdCommandError> {
-    let mut context = Context::from_value(front_matter.extra_context)?;
+    let mut context = match &front_matter.extra_context {
+        serde_json::Value::Object(_) => {
+            Context::from_serialize(&front_matter.extra_context)?
+        }
+        _ => Context::new(),
+    };
 
     let mut user = User::default();
 

@@ -36,7 +36,7 @@ pub struct FrontMatter {
     pub(crate) sshd_command: FrontMatterSshdCommand,
 
     #[serde(flatten)]
-    pub(crate) extra_context: tera::Value,
+    pub(crate) extra_context: serde_json::Value,
 }
 
 #[derive(Deserialize, PartialEq, Eq, Debug, Default)]
@@ -259,7 +259,7 @@ sshd_command:
                 complete_user: false,
                 hostname: false,
             },
-            extra_context: tera::Value::Object(tera::Map::new()),
+            extra_context: serde_json::Value::Object(serde_json::Map::new()),
         };
         assert_eq!(front_matter, front_matter_expected);
     }
@@ -289,12 +289,6 @@ search_domains:
         let front_matter = front_matter.unwrap();
         assert!(front_matter.validate().is_ok());
 
-        let mut extra_content = tera::Map::new();
-        let _ = extra_content.insert(
-            "search_domains".into(),
-            vec!["home.arpa", "local"].into(),
-        );
-
         let front_matter_expected = FrontMatter {
             sshd_command: FrontMatterSshdCommand {
                 command: Command::Principals,
@@ -307,7 +301,7 @@ search_domains:
                 complete_user: true,
                 hostname: true,
             },
-            extra_context: tera::Value::Object(extra_content),
+            extra_context: serde_json::json!({"search_domains": ["home.arpa", "local"]}),
         };
         assert_eq!(front_matter, front_matter_expected);
     }

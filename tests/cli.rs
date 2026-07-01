@@ -68,6 +68,20 @@ mod happy_path {
             .stdout(include_str!("fixtures/happy/principals.out"))
             .stderr(predicate::str::is_empty());
     }
+
+    #[test]
+    fn output_readme_principals() {
+        let mut cmd = cmd();
+        cmd.args([
+            "tests/fixtures/happy/readme-principals.tera",
+            "1000",
+            "user",
+        ]);
+        cmd.assert()
+            .success()
+            .stdout(include_str!("fixtures/happy/readme-principals.out"))
+            .stderr(predicate::str::is_empty());
+    }
 }
 
 #[cfg(test)]
@@ -115,7 +129,7 @@ mod sad_path {
         let mut cmd = cmd();
         cmd.args(["--check", "tests/fixtures/sad/missing-context.tera"]);
         cmd.assert().failure().stderr(predicate::str::contains(
-            "Variable `does_not_exist` not found",
+            "Variable `does_not_exist` is not defined",
         ));
     }
 

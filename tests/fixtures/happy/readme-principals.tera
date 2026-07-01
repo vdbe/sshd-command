@@ -1,0 +1,37 @@
+---
+# /etc/ssh/templates/principals.tera
+sshd_command:
+    version: 0.3.0
+    command: principals
+    tokens: '%U %u'
+    hostname: false
+    complete_user: false
+hostname: hostname
+search_domains:
+    - home.arpa
+    - local
+user_manual:
+    name: user
+    uid: 1000
+    gid: 1000
+    groups:
+        - name: admin
+          gid: 1000
+        - name: users
+          gid: 100
+---
+{% component principals(fqdn: string, user: map) -%}
+    {{ fqdn ~ "\n" -}}
+    {{ user.name }}@{{ fqdn ~ "\n" -}}
+    {% for group in user.groups %}
+        {%- if group.gid >= 1000 -%}
+            @{{ group.name }}@{{ fqdn -}}
+        {% endif -%}
+    {% endfor -%}
+{% endcomponent principals -%}
+
+{{<principals fqdn={hostname} user={user_manual} />}}
+
+{%- for search_domain in search_domains %}
+{{<principals fqdn={(hostname ~ "." ~ search_domain)} user={user_manual} />}}
+{%- endfor -%}
