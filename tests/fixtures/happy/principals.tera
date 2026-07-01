@@ -12,12 +12,9 @@ search_domains:
 ---
 # Arguments: 1000 user
 
-{% macro principals(fqdn) -%}
-{{ fqdn }}
-{{ user.name }}@{{ fqdn }}
-{%- endmacro principals -%}
-
-{{- self::principals(fqdn=hostname) }}
-{% for search_domain in search_domains  %}
-{{- self::principals(fqdn=hostname ~ "." ~ search_domain) }}
-{%  endfor -%}
+{{ hostname }}
+{{ user.name }}@{{ hostname }}
+{%- for search_domain in search_domains %}
+{{ hostname ~ "." ~ search_domain }}
+{{ user.name }}@{{ hostname ~ "." ~ search_domain }}
+{%- endfor %}
