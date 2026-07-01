@@ -95,7 +95,7 @@
 
           deadnix = mkCheck "check-deadnix" [ pkgs.deadnix ] "deadnix --fail ${self}";
 
-          nixfmt = mkCheck "check-nixfmt" [ pkgs.nixfmt-rfc-style ] "nixfmt --check ${self}";
+          nixfmt = mkCheck "check-nixfmt" [ pkgs.nixfmt ] "nixfmt --check ${self}";
 
           statix = mkCheck "check-statix" [ pkgs.statix ] "statix check ${self}";
 
@@ -138,7 +138,7 @@
         }
       );
 
-      formatter = forAllSystems (system: nixpkgsFor.${system}.nixfmt-rfc-style);
+      formatter = forAllSystems (system: nixpkgsFor.${system}.nixfmt);
 
       packages = forAllSystems (
         system:
